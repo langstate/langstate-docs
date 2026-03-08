@@ -1,0 +1,47 @@
+{
+  "name": "LangState Docs Dev Environment",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "shutdownAction": "stopCompose",
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/workspace,type=bind"
+  ],
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-json",
+        "ms-vscode.vscode-typescript-next",
+        "christian-kohler.path-intellisense",
+        "ms-vscode.vscode-eslint",
+        "redhat.vscode-yaml",
+        "tamasfe.even-better-toml",
+        "unifiedjs.vscode-mdx"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "files.eol": "\n",
+        "typescript.preferences.includePackageJsonAutoImports": "auto"
+      }
+    }
+  },
+  "forwardPorts": [3000, 3001],
+  "portsAttributes": {
+    "3000": {
+      "label": "Homepage",
+      "onAutoForward": "notify"
+    },
+    "3001": {
+      "label": "Docs",
+      "onAutoForward": "notify"
+    }
+  },
+  "postCreateCommand": "bash /workspace/.devcontainer/post-create-command.sh",
+  "remoteUser": "node"
+}

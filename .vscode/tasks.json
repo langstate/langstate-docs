@@ -1,0 +1,75 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Docs: Dev",
+      "type": "shell",
+      "command": "make dev-docs",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "dev"
+      },
+      "problemMatcher": [
+        {
+          "pattern": [
+            {
+              "regexp": "."
+            }
+          ],
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": "preparing local preview",
+            "endsPattern": "preview ready"
+          }
+        }
+      ]
+    },
+    {
+      "label": "Homepage: Dev",
+      "type": "shell",
+      "command": "make dev-homepage",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "dev"
+      },
+      "problemMatcher": [
+        {
+          "pattern": [
+            {
+              "regexp": "."
+            }
+          ],
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": "Starting",
+            "endsPattern": "Ready in"
+          }
+        }
+      ]
+    },
+    {
+      "label": "Docs: Check Links",
+      "type": "shell",
+      "command": "make check-docs",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Homepage: Build",
+      "type": "shell",
+      "command": "make build-homepage",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

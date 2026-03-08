@@ -2,7 +2,7 @@
   "name": "@langstate/docs",
   "private": true,
   "scripts": {
-    "dev": "mint dev",
+    "dev": "PORT=${PORT:-3001} mint dev --no-open",
     "broken-links": "mint broken-links"
   },
   "devDependencies": {

@@ -1,189 +1,130 @@
 ---
-title: "Architectural Overview"
-description: "Interpretive-first system layout and boundaries"
+title: "Core Architecture"
+description: "How LangState composes schema extraction, mutation, persistence, and projection"
 ---
 
-LangState organizes systems around an **interpretive-first architecture** where the interaction layer is cleanly separated from the execution layer.
+LangState is a single-state orchestrator:
 
-## System Layout
+- `LangState` persists one current state object in a repository
+- `Mutator` updates that state from user input
+- `Projectors` observe state changes and generate projections
+- `Action` contracts remain available for business execution, but are intentionally decoupled from the core orchestration path
 
-```mermaid
-flowchart TB
-    subgraph "Interaction Layer"
-        Input[User Input] --> Perceiver
-        Perceiver --> IS[Interpretive State]
-        IS --> Interpreter
-        Interpreter --> Output[Response/UI]
-    end
-    
-    subgraph "Commitment Boundary"
-        IS --> Ready{Ready?}
-        Ready -->|Yes| Canonicalizer
-    end
-    
-    subgraph "Execution Layer"
-        Canonicalizer --> CS[Canonical State]
-        CS --> Business[Business Logic]
-        Business --> Actions[Side Effects]
-    end
+## Module structure
+
+```text
+langstate/
+├── core/
+│   ├── action/
+│   ├── evaluator/
+│   ├── mutator/
+│   ├── projector/
+│   │   ├── base/
+│   │   ├── canonical/
+│   │   └── ui/
+│   ├── spec_extractor/
+│   ├── state/
+│   │   ├── canonical/
+│   │   ├── repository/
+│   │   └── snapshot/
+│   └── langstate/
+└── docs/
 ```
 
-## Layer Responsibilities
+## Orchestrator responsibilities
 
-### Interaction Layer
+`LangState` is the coordination point for:
 
-The interaction layer handles all user-facing communication:
+- loading or setting the schema
+- persisting the current state in a repository
+- delegating updates to a mutator
+- notifying projector observers after state changes
+- returning either an `InteractionRequest` or final `StateResultData`
 
-| Component | Responsibility |
-|-----------|---------------|
-| **Perceiver** | Ingests and normalizes user input from any modality |
-| **Interpretive State** | Stores evolving understanding of user intent |
-| **Interpreter** | Generates responses and UI based on current state |
+### Core methods
 
-**Key properties**:
-- Tolerates ambiguity and incomplete information
-- Supports revision without side effects
-- Operates on interpretive state only
-- Never directly executes business logic
+| Method | Purpose |
+| --- | --- |
+| `initialize(config)` | Set up schema and runtime components |
+| `invoke(agent_input, metadata)` | Process input and return the next interaction or final result |
+| `get_state()` | Read the current persisted state |
+| `reset()` | Reset the flow and start over |
 
-### Execution Layer
+## State model
 
-The execution layer handles business operations:
+At the orchestrator level, LangState tracks one state ID (`state`) and one state object.
 
-| Component | Responsibility |
-|-----------|---------------|
-| **Canonicalizer** | Reduces interpretive state to canonical form |
-| **Canonical State** | Validated, execution-ready business data |
-| **Business Logic** | Domain operations and side effects |
+The default state payload shape is:
 
-**Key properties**:
-- Requires complete, validated state
-- Executes irreversible operations
-- Operates on canonical state only
-- Follows strict business rules
-
-## Boundaries Between Layers
-
-The architecture enforces clear boundaries:
-
-<CardGroup cols={2}>
-  <Card title="Interaction → Execution" icon="arrow-right">
-    Only through Canonicalizer when state is ready
-  </Card>
-  <Card title="Execution → Interaction" icon="arrow-left">
-    Results flow back as new input to Perceiver
-  </Card>
-</CardGroup>
-
-### Why Boundaries Matter
-
-**Without boundaries**:
-```
-User: "Book for Saturday"
-System: ✗ Creates booking immediately
-User: "Wait, I meant Sunday"
-System: ✗ Must cancel and rebook
+```python
+{
+    "field_key": {
+        "inference": [{"content": "...", "mutator_id": "..."}],
+        "values": [{"value": "...", "confidence": 0.95}]
+    }
+}
 ```
 
-**With boundaries**:
-```
-User: "Book for Saturday"
-System: Updates interpretive state
-User: "Wait, I meant Sunday"
-System: Updates interpretive state
-User: "Yes, confirm Sunday"
-System: Canonicalizes and executes
-```
+This shape is represented by `StateSchema`.
 
-## Data Flow
-
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant P as Perceiver
-    participant IS as Interpretive State
-    participant I as Interpreter
-    participant C as Canonicalizer
-    participant CS as Canonical State
-    
-    U->>P: Input
-    P->>IS: Update
-    IS->>I: Current State
-    I->>U: Response
-    
-    Note over IS: Multiple turns...
-    
-    U->>P: "Confirm"
-    P->>IS: Update (confirmed)
-    IS->>C: Ready state
-    C->>CS: Canonical state
-    CS->>U: Confirmation
-```
-
-## Component Isolation
-
-Each component has a well-defined interface:
-
-```
-┌─────────────┐     ┌─────────────────┐     ┌─────────────┐
-│  Perceiver  │────▶│ Interpretive    │────▶│ Interpreter │
-│             │     │ State           │     │             │
-│ in: Input   │     │                 │     │ out: Response│
-│ out: Update │     │ in: Updates     │     │             │
-└─────────────┘     │ out: State      │     └─────────────┘
-                    └────────┬────────┘
-                             │
-                             ▼
-                    ┌─────────────────┐     ┌─────────────┐
-                    │  Canonicalizer  │────▶│  Canonical  │
-                    │                 │     │  State      │
-                    │ in: Interp State│     └─────────────┘
-                    │ out: Canon State│
-                    └─────────────────┘
-```
-
-This isolation enables:
-- Independent testing of each component
-- Swapping implementations without system-wide changes
-- Clear contracts between components
-- Parallel development across teams
-
-## Configuration Points
-
-The architecture exposes several configuration points:
-
-| Point | Configuration Options |
-|-------|----------------------|
-| Perceiver | Input modalities, normalization rules |
-| Interpretive State | Schema, confidence thresholds, field constraints |
-| Interpreter | Response strategies, UI generation rules |
-| Canonicalizer | Reduction strategy, validation rules |
-| Commitment Boundary | When to trigger canonicalization |
-
-## Example: Complete Flow
+## Data flow
 
 ```mermaid
 flowchart LR
-    subgraph Turn1
-        U1[User: Book Friday] --> P1[Perceive]
-        P1 --> IS1[date: Friday]
-        IS1 --> I1[Interpreter]
-        I1 --> R1[Got it, Friday]
-    end
-    
-    subgraph Turn2
-        U2[User: 5 people] --> P2[Perceive]
-        P2 --> IS2[date: Friday<br/>guests: 5]
-        IS2 --> I2[Interpreter]
-        I2 --> R2[5 guests, Friday]
-    end
-    
-    subgraph Turn3
-        U3[User: Confirm] --> P3[Perceive]
-        P3 --> IS3[confirmed: true]
-        IS3 --> Canon[Canonicalize]
-        Canon --> CS[Booking Created]
-    end
+    Schema["Schema"] --> Current["Current state (repository)"]
+    Current --> Mutator["Mutator"]
+    Mutator --> Saved["Updated state (saved)"]
+    Saved --> Projectors["Projector observers"]
 ```
 
-The interpretive-first architecture ensures that user intent is fully captured and confirmed before any irreversible actions occur.
+1. A schema is loaded or injected during initialization.
+2. The current state is read from the repository.
+3. A mutator transforms state from structured input.
+4. LangState persists the updated state.
+5. Projectors are notified and produce canonical, UI, or custom projections.
+
+## Observer pattern
+
+LangState uses an observer protocol:
+
+- `LangState` acts as the subject
+- projectors act as observers
+- `_set_state(...)` saves the state and then calls `_notify_projectors(...)`
+- projectors receive a `ProjectionContext` containing current state, conversation history, and metadata
+
+This keeps projection behavior extensible without making the orchestrator branch on projector type.
+
+## Contracts by module
+
+### Mutator
+
+- Accepts a `MutationContext`
+- Returns a `MutationResult`
+- Owns the logic that turns structured input into state updates
+
+### Projector
+
+- Accepts a `ProjectionContext`
+- Returns a `ProjectionResult`
+- May specialize into UI or canonical projections
+
+### Repository
+
+- Stores and retrieves the current `BaseState`
+- Defaults to an in-memory implementation
+- Can be swapped for a custom persistence layer
+
+### Action
+
+Action contracts exist for business execution but are intentionally outside the core orchestrator loop. That separation keeps LangState focused on state formation and projection rather than irreversible business side effects.
+
+## Why this split matters
+
+This architecture gives the package a clean seam between:
+
+- state formation
+- projection
+- persistence
+- business execution
+
+That in turn makes the core library easier to test, easier to extend, and less likely to entangle UI behavior with mutation logic.

@@ -11,7 +11,7 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Docs",
         "groups": [
           {
             "group": "Getting started",
@@ -22,42 +22,28 @@
             ]
           },
           {
-            "group": "SUP: An LLM App Design Pattern",
+            "group": "Concepts",
             "pages": [
-              "sup/sup",
-              "sup/sup-vs-mvc",
-              "sup/state",
-              "sup/updater",
-              "sup/presenter",
-              "sup/sup-for-llm-evaluation"
+              "concepts/interpretive-state",
+              "concepts/canonical-state"
             ]
           },
           {
-            "group": "Interpretive State",
+            "group": "Architecture",
             "pages": [
-              "interpretive-state/interpretive-state",
-              "interpretive-state/problem-statement",
-              "interpretive-state/natural-conversation",
-              "interpretive-state/generative-ui",
-              "interpretive-state/logical-control",
-              "interpretive-state/token-efficiency"
+              "architecture/overview"
             ]
           },
           {
-            "group": "LangState: The Design",
+            "group": "Evaluation",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "evaluation/evaluator"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "Reference",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "api-reference/introduction"
             ]
           }
         ]
@@ -73,12 +59,16 @@
       {
         "label": "Support",
         "href": "mailto:hi@langstate.com"
+      },
+      {
+        "label": "GitHub",
+        "href": "https://github.com/agentize/langstate"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.langstate.com"
+      "label": "Package Source",
+      "href": "https://github.com/agentize/langstate/tree/main/packages/langstate"
     }
   },
   "contextual": {
@@ -95,9 +85,7 @@
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "github": "https://github.com/agentize/langstate"
     }
   }
 }

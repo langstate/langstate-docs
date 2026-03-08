@@ -1,0 +1,16 @@
+FROM node:20.17-bookworm-slim
+
+ENV PNPM_HOME="/pnpm" \
+    PATH="/pnpm:$PATH" \
+    NODE_ENV=development \
+    npm_config_update_notifier=false \
+    npm_config_fund=false \
+    npm_config_audit=false
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends bash curl socat \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN npm install -g pnpm@10.18.0
+
+WORKDIR /workspace

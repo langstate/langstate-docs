@@ -1,33 +1,147 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: "Public API"
+description: "The main classes and schemas exposed by the current LangState package"
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+This page summarizes the main Python surface exposed by the current package source.
 
-## Welcome
+## Top-level package
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
+The root package exports the orchestrator class:
 
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
-
-## Authentication
-
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
-
-```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
+```python
+from langstate import LangState
 ```
+
+`LangState` is an abstract base class. Concrete applications are expected to implement `initialize()`, `invoke()`, and `reset()` while composing the rest of the package contracts around it.
+
+## Core module exports
+
+Most of the package surface is exported from `langstate.core`:
+
+```python
+from langstate.core import (
+    AgentInput,
+    EvaluationContext,
+    FieldComparison,
+    Inference,
+    InteractionRequest,
+    LangStateConfig,
+    LLMEvaluator,
+    LLMMutator,
+    State,
+    StateComparison,
+    StateResultData,
+    ValueConfidence,
+)
+```
+
+## Interaction models
+
+### `AgentInput`
+
+Structured input sent into a concrete LangState implementation.
+
+Supported input types include:
+
+- `TEXT`
+- `ACTION`
+- `SELECTION`
+- `CONFIRMATION`
+- `FILE`
+- `SYSTEM`
+
+Helper constructors:
+
+```python
+AgentInput.from_text("hello")
+AgentInput.from_action("submit_form", {"form_id": "registration"})
+AgentInput.from_selection(["vip"], field_id="registration.tier")
+AgentInput.from_confirmation("registrant.email", True)
+```
+
+### `InteractionRequest`
+
+Returned when LangState still needs user interaction.
+
+Key fields:
+
+| Field | Purpose |
+| --- | --- |
+| `interaction_type` | The type of interaction required |
+| `prompt` | Human-readable prompt for the user |
+| `components` | UI components to render |
+| `options` | Selection options for the next step |
+| `state` | Current state snapshot |
+| `pending_fields` | Fields that still need values |
+| `metadata` | Additional runtime metadata |
+
+### `StateResultData`
+
+Returned when the flow is complete.
+
+| Field | Purpose |
+| --- | --- |
+| `state` | Final `StateSchema` snapshot |
+| `success` | Whether the run completed successfully |
+| `data` | Extra result payload |
+| `metadata` | Extra metadata |
+
+## State primitives
+
+The current package exposes a rich interpretive state model:
+
+```python
+from langstate.core import Inference, State, ValueConfidence
+```
+
+### `Inference`
+
+Stores how a field value was derived:
+
+- `content`
+- `mutator_id`
+- `message_id`
+
+### `ValueConfidence`
+
+Represents a candidate value plus its confidence score.
+
+### `State`
+
+The default state implementation supports:
+
+- `add_inference(path, inference)`
+- `add_value(path, value_confidence)`
+- nested field paths such as `address.city`
+- array field paths such as `guests.0.email`
+- deep-copying state for safe evaluation and testing
+
+## Configuration
+
+`LangStateConfig` is the main orchestrator configuration model.
+
+| Field | Description |
+| --- | --- |
+| `schema_source` | Path or dict containing schema definition |
+| `confidence_threshold` | Default threshold used during projection |
+| `require_confirmation` | Whether values require explicit confirmation |
+| `conversation_history_limit` | Max conversation history length |
+| `metadata` | Additional configuration payload |
+
+## Evaluator surface
+
+The evaluator module exports:
+
+```python
+from langstate.core import (
+    BaseEvaluator,
+    EvaluationContext,
+    EvaluationResult,
+    FieldComparison,
+    LLMEvaluator,
+    StateComparison,
+)
+```
+
+See [Evaluator](/evaluation/evaluator) for the comparison flow and result structure.

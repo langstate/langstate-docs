@@ -1,94 +1,103 @@
 ---
-title: 'Development'
-description: 'Preview changes locally to update your docs'
+title: "Development"
+description: "Local development, focused debugging, and test workflows for packages/langstate"
 ---
 
-<Info>
-  **Prerequisites**:
-  - Node.js version 19 or higher
-  - A docs repository with a `docs.json` file
-</Info>
+This page documents the current development workflow from the `packages/langstate` repository content.
 
-Follow these steps to install and run Mintlify on your operating system.
+## Working directory
 
-<Steps>
-<Step title="Install the Mintlify CLI">
+Most package development commands are run from:
 
 ```bash
-npm i -g mint
+cd packages/langstate
 ```
-</Step>
 
-<Step title="Preview locally">
-
-Navigate to your docs directory where your `docs.json` file is located, and run the following command:
+## Install dependencies
 
 ```bash
-mint dev
+poetry install --with dev
 ```
 
-A local preview of your documentation will be available at `http://localhost:3000`.
-
-</Step>
-</Steps>
-
-## Custom ports
-
-By default, Mintlify uses port 3000. You can customize the port Mintlify runs on by using the `--port` flag. For example, to run Mintlify on port 3333, use this command:
+Optional:
 
 ```bash
-mint dev --port 3333
+poetry shell
 ```
 
-If you attempt to run Mintlify on a port that's already in use, it will use the next available port:
+That makes the project virtual environment the default for `python`, `pytest`, and related commands.
 
-```md
-Port 3000 is already in use. Trying 3001 instead.
-```
+## Run tests
 
-## Mintlify versions
-
-Please note that each CLI release is associated with a specific version of Mintlify. If your local preview does not align with the production version, please update the CLI:
+Full test suite:
 
 ```bash
-npm mint update
+poetry run pytest
 ```
 
-## Validating links
-
-The CLI can assist with validating links in your documentation. To identify any broken links, use the following command:
+Unit tests only:
 
 ```bash
-mint broken-links
+poetry run pytest tests/unit
 ```
 
-## Deployment
+Integration tests only:
 
-If the deployment is successful, you should see the following:
+```bash
+poetry run pytest tests/integration
+```
 
-<Frame>
-  <img src="/images/checks-passed.png" alt="Screenshot of a deployment confirmation message that says All checks have passed." style={{ borderRadius: '0.5rem' }} />
-</Frame>
+Single focused test:
 
-## Code formatting
+```bash
+poetry run pytest tests/integration/core/test_state_from_openapi.py::TestSchemaParsing::test_schema_loads_successfully
+```
 
-We suggest using extensions on your IDE to recognize and format MDX. If you're a VSCode user, consider the [MDX VSCode extension](https://marketplace.visualstudio.com/items?itemName=unifiedjs.vscode-mdx) for syntax highlighting, and [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) for code formatting.
+## Focused debugging
 
-## Troubleshooting
+When you need stdout, breakpoints, or a smaller target, run a focused test with `-s`:
 
-<AccordionGroup>
-  <Accordion title='Error: Could not load the "sharp" module using the darwin-arm64 runtime'>
+```bash
+poetry run pytest tests/unit/state/test_base_state.py -k snapshot -s
+```
 
-    This may be due to an outdated version of node. Try the following:
-    1. Remove the currently-installed version of the CLI: `npm remove -g mint`
-    2. Upgrade to Node v19 or higher.
-    3. Reinstall the CLI: `npm i -g mint`
-  </Accordion>
+Debugging notes:
 
-  <Accordion title="Issue: Encountering an unknown error">
-  
-    Solution: Go to the root of your device and delete the `~/.mintlify` folder. Then run `mint dev` again.
-  </Accordion>
-</AccordionGroup>
+- Use `breakpoint()` inside the package code.
+- Run pytest with `-s` so `pdb` can take control.
+- Narrow the selection with `-k` or a fully qualified test path before debugging the full suite.
 
-Curious about what changed in the latest CLI version? Check out the [CLI changelog](https://www.npmjs.com/package/mintlify?activeTab=versions).
+## Save integration test artifacts
+
+To persist integration test outputs:
+
+```bash
+TEST_OUTPUT=true poetry run pytest tests/integration/core/test_state_from_openapi.py -s
+```
+
+Generated artifacts are written under:
+
+```text
+tests/integration/core/test_outputs
+```
+
+## Package metadata
+
+The current package metadata in `pyproject.toml` describes LangState as:
+
+- package name: `langstate`
+- version: `0.1.0`
+- Python requirement: `^3.10`
+- dependencies: `pydantic`, `openapi3-parser`
+
+## Docs-related dependencies
+
+The package repo already includes a docs dependency group:
+
+```toml
+[tool.poetry.group.docs.dependencies]
+mkdocs = "^1.5.0"
+mkdocs-material = "^9.0.0"
+```
+
+This Mintlify site is separate from that package-local docs setup and is intended to act as the public-facing handbook for the same source material.

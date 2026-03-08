@@ -6,6 +6,10 @@
     "check:docs": "pnpm --filter @langstate/docs broken-links",
     "dev:homepage": "pnpm --filter @langstate/homepage dev",
     "build:homepage": "pnpm --filter @langstate/homepage build",
-    "start:homepage": "pnpm --filter @langstate/homepage start"
+    "start:homepage": "pnpm --filter @langstate/homepage start",
+    "docker:up": "docker compose up --build",
+    "docker:up:docs": "docker compose up --build docs",
+    "docker:up:homepage": "docker compose up --build homepage",
+    "docker:down": "docker compose down"
   }
 }

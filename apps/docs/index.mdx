@@ -1,97 +1,83 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "LangState"
+description: "A Python library for schema-backed, language-driven state orchestration"
 ---
 
-## Setting up
+LangState is a Python library for managing state in language-driven applications. It models state as a schema-backed graph and keeps two synchronized views:
 
-Get your documentation site up and running in minutes.
+- **Interpretive state** for inferences, candidate values, and confidence
+- **Canonical state** for resolved, execution-ready values
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+The core `LangState` orchestrator wires together spec extractors, mutators, projectors, and repositories so applications can move from user input to validated state and UI output.
 
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Install the package locally, create your first state object, and understand the core workflow.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Development" icon="rectangle-terminal" href="/development">
+    Run tests, debug focused flows, and save integration test artifacts while working on the package.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Architecture" icon="diagram-project" href="/architecture/overview">
+    See how LangState composes spec extraction, mutation, persistence, and projection.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Evaluator" icon="square-poll-vertical" href="/evaluation/evaluator">
+    Understand the built-in evaluator used to compare expected and actual post-state changes.
   </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## What LangState gives you
 
-Everything you need to create world-class documentation.
+<CardGroup cols={2}>
+  <Card title="Schema-backed state" icon="sitemap">
+    State is stored as a graph of field paths, not a single flat blob. Nested objects and array paths are first-class.
+  </Card>
+  <Card title="Confidence-aware values" icon="gauge-high">
+    Each field can keep multiple candidate values with confidence scores and the latest inference that produced them.
+  </Card>
+  <Card title="Pluggable orchestration" icon="puzzle-piece">
+    Spec extractors, mutators, projectors, and repositories are independent contracts that can be swapped without rewriting the whole flow.
+  </Card>
+  <Card title="Evaluation support" icon="flask">
+    The evaluator compares expected and actual post-state outcomes field by field so mutators can be tested systematically.
+  </Card>
+</CardGroup>
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+## State shape
 
-## Need inspiration?
+At the orchestrator layer, LangState persists a single current state object. The default payload shape is:
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+```python
+{
+    "field_key": {
+        "inference": [{"content": "...", "mutator_id": "..."}],
+        "values": [{"value": "...", "confidence": 0.95}]
+    }
+}
+```
+
+This shape is represented by `StateSchema` and is designed to preserve both interpretation history and candidate values while the application is still converging on a final answer.
+
+## Core building blocks
+
+| Component | Responsibility |
+| --- | --- |
+| `LangState` | Coordinates schema loading, state persistence, mutation, and projector notification |
+| `BaseSpecExtractor` | Loads schema definitions into LangState-readable structures |
+| `BaseMutator` | Updates state from structured user input |
+| `BaseProjector` | Observes state changes and produces downstream projections |
+| `BaseStateRepository` | Persists the current state object |
+| `LLMEvaluator` | Compares expected and actual post-state changes for mutator testing |
+
+## Repository layout
+
+The source package currently lives in:
+
+```text
+packages/langstate/
+```
+
+That package contains the Python source, package metadata, tests, and the architecture/evaluator notes that this Mintlify site is now based on.
+
+<Note>
+  LangState is currently documented from the package source itself, not from a separately maintained handbook. When package architecture changes, these pages should track the source repository alongside it.
+</Note>

@@ -2,7 +2,7 @@
 
 title: "SUP vs. MVC"
 description: "SUP borrows MVC’s separation of concerns but restructures responsibilities for dynamic, probabilistic, LLM-driven workflows."
--------------------------------------------------------------------------------------------------------------------------------------------
+---
 
 Agentic AI applications increasingly resemble conventional software architectures in their need for clarity, modularity, and separation of concerns. To explain these systems more intuitively, the **SUP (State-Updater-Presenter)** pattern draws inspiration from the familiar **MVC** model. However, the probabilistic and conversational nature of AI workflows introduces fundamental differences in how these roles should be structured. This article outlines how SUP adapts each component—state, updater, and presenter—to meet the requirements of agentic, dynamic, and schema-driven AI applications.
 
@@ -60,4 +60,3 @@ In agentic systems, the Presenter generates natural-language responses as the ma
 * **Generative UI** – *In conventional MVC:* composition between views and controllers typically requires **explicit integration logic** within the codebase. In **agentic systems**, presenters can be **dynamically composed** with other agents, tools, or interface layers, enabling flexible orchestration without manual coupling.
 
 ---
-
