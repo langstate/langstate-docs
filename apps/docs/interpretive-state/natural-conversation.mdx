@@ -1,0 +1,55 @@
+---
+title: "Supporting Natural Conversation"
+description: "Enable object-level reasoning, ambiguity, and non-linear field acquisition"
+---
+
+Interpretive State supports natural conversation by allowing **object-level reasoning**, **ambiguity**, and **non-linear field acquisition**.
+
+Users are not required to follow a predefined order when providing information. Partial, ambiguous, or out-of-order inputs are captured safely without committing to the Canonical State.
+
+## Example: Linear vs Interpretive Interaction
+
+Consider how differently a canonical-first system and an interpretive state system handle the same user input.
+
+### Canonical-first (rigid)
+
+```
+System: "Please provide your email."
+User: "I want to bring my wife and two guests this Saturday."
+System: "Please provide your email first."
+```
+
+<Warning>
+In this interaction, the user's information about guests and the date is **completely ignored** because it doesn't fit the expected field order.
+</Warning>
+
+### Interpretive State (flexible)
+
+```
+User: "I want to bring my wife and two guests this Saturday."
+```
+
+Interpretive State captures:
+- `guests = [wife, guest1, guest2]`
+- `date = Saturday` (unconfirmed)
+
+```
+System: "Before I register your guests, please verify your email."
+```
+
+<Check>
+The system **retains the user's information** while still guiding them to provide required fields.
+</Check>
+
+## Key Difference
+
+The key difference is that Interpretive State **retains meaning without enforcing order**, enabling smoother, more human-like interaction.
+
+| Aspect | Canonical-first | Interpretive State |
+|--------|-----------------|-------------------|
+| Field order | Strictly enforced | Flexible |
+| Partial input | Discarded or rejected | Captured and held |
+| Ambiguity | Forces clarification | Tolerates uncertainty |
+| User experience | Rigid, form-like | Natural, conversational |
+
+By separating the interaction layer from the business schema, Interpretive State allows systems to be **helpful first** while still ensuring data integrity before commitment to the Canonical State.

@@ -1,0 +1,230 @@
+---
+title: "Cost and Reliability Benefits"
+description: "How state-based evaluation reduces costs and improves reliability"
+---
+
+State-based evaluation provides significant advantages in both cost efficiency and reliability compared to traditional approaches.
+
+## Cost Benefits
+
+### Token Cost Reduction
+
+Traditional evaluation requires full conversation replay:
+
+```
+Turn 5 evaluation:
+- Replay Turn 1: ~200 tokens
+- Replay Turn 2: ~300 tokens  
+- Replay Turn 3: ~400 tokens
+- Replay Turn 4: ~500 tokens
+- Execute Turn 5: ~600 tokens
+Total: ~2,000 tokens per test
+```
+
+State-based evaluation:
+
+```
+Turn 5 evaluation:
+- Load state snapshot: 0 tokens
+- Execute Turn 5: ~600 tokens
+Total: ~600 tokens per test
+```
+
+**Savings: 70%+ token reduction per test**
+
+### Scaling Impact
+
+| Test Suite Size | Traditional Cost | State-Based Cost | Savings |
+|-----------------|-----------------|------------------|---------|
+| 100 tests | $50 | $15 | $35 (70%) |
+| 1,000 tests | $500 | $150 | $350 (70%) |
+| 10,000 tests | $5,000 | $1,500 | $3,500 (70%) |
+
+### Judge LLM Elimination
+
+Traditional evaluation often requires LLM-as-judge:
+
+```python
+# Traditional: Requires judge call
+result = judge_llm.evaluate(
+    prompt=test_prompt,
+    expected="Should confirm booking",
+    actual=model_response
+)  # Additional LLM call cost
+```
+
+State-based evaluation uses deterministic checks:
+
+```python
+# State-based: No judge needed
+assert state.booking.status == "confirmed"
+assert state.booking.date == expected_date
+# Zero additional LLM cost
+```
+
+---
+
+## Reliability Benefits
+
+### Deterministic Testing
+
+Traditional tests are non-deterministic:
+
+```python
+# May pass or fail randomly
+def test_booking():
+    response = model.chat("Book Friday")
+    assert "friday" in response.lower()  # May vary
+```
+
+State-based tests are deterministic:
+
+```python
+# Consistent results
+def test_booking():
+    state = apply_input("Book Friday", initial_state)
+    assert state.date.value == "Friday"  # Always same check
+```
+
+### Regression Detection
+
+State diffs make regressions obvious:
+
+```python
+# Version A
+{"date": {"value": "Friday", "confidence": 0.95}}
+
+# Version B (regression)
+{"date": {"value": "Friday", "confidence": 0.70}}
+
+# Diff clearly shows:
+# confidence: 0.95 → 0.70 (regression)
+```
+
+### Isolation of Failures
+
+When a test fails, the cause is localized:
+
+<Tabs>
+  <Tab title="Traditional">
+    ```
+    Test failed: "booking confirmation"
+    
+    Which turn caused the failure?
+    - Turn 1? Turn 3? Turn 5?
+    - Need to debug entire conversation
+    ```
+  </Tab>
+  <Tab title="State-Based">
+    ```
+    Test failed: state.venue != expected
+    
+    Turn 4 state: venue = null
+    Turn 5 input: "The Grand Hall"
+    Turn 5 state: venue = null  ← Problem here
+    
+    Issue: Venue extraction failed at Turn 5
+    ```
+  </Tab>
+</Tabs>
+
+### Reproducibility
+
+State snapshots enable exact reproduction:
+
+```python
+def reproduce_issue(issue_id):
+    # Load exact state from bug report
+    state = load_snapshot(issue_id)
+    
+    # Apply the problematic input
+    result = apply_input(issue_input, state)
+    
+    # Same conditions every time
+    return result
+```
+
+---
+
+## Evaluation Speed
+
+### Parallel Execution
+
+State-based tests can run fully in parallel:
+
+```python
+# All tests independent - run in parallel
+test_results = parallel_map(
+    lambda test: evaluate_turn(load_state(test.snapshot), test.input),
+    all_tests
+)
+```
+
+Traditional tests have sequential dependencies:
+
+```python
+# Must run sequentially for multi-turn tests
+for turn in conversation_turns:
+    response = model.chat(turn.input)  # Can't parallelize
+```
+
+### Speed Comparison
+
+| Test Type | Traditional | State-Based | Speedup |
+|-----------|-------------|-------------|---------|
+| Single turn | 2s | 0.5s | 4x |
+| 5-turn conversation | 10s | 0.5s | 20x |
+| 100 test suite | 15min | 2min | 7.5x |
+
+---
+
+## Debugging Benefits
+
+### State Inspection
+
+Debug by examining state at any point:
+
+```python
+def debug_conversation(conversation_id):
+    history = load_state_history(conversation_id)
+    
+    for turn, state in enumerate(history):
+        print(f"Turn {turn}:")
+        print(f"  Coverage: {state.coverage}")
+        print(f"  Changes: {state.diff_from_previous}")
+        print(f"  Issues: {state.validation_errors}")
+```
+
+### Counterfactual Testing
+
+Test "what if" scenarios without full replay:
+
+```python
+def test_alternative_input():
+    # Load state from production conversation
+    state_turn_4 = load_snapshot("conv_123_turn_4")
+    
+    # Test alternative input
+    alt_state = apply_input("What about Saturday instead?", state_turn_4)
+    
+    # Compare outcomes
+    assert alt_state.date.value == "Saturday"
+```
+
+---
+
+## Summary
+
+| Benefit | Impact |
+|---------|--------|
+| **Token cost** | 70%+ reduction |
+| **Judge LLM cost** | Eliminated for most tests |
+| **Test reliability** | Deterministic results |
+| **Regression detection** | Clear state diffs |
+| **Failure isolation** | Localized to specific turn |
+| **Reproducibility** | Exact state reproduction |
+| **Parallelization** | Full parallel execution |
+| **Speed** | 7-20x faster |
+| **Debugging** | Direct state inspection |
+
+State-based evaluation transforms testing from an expensive, unreliable process into a fast, deterministic, and cost-effective workflow.

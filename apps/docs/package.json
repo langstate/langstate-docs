@@ -1,0 +1,11 @@
+{
+  "name": "@langstate/docs",
+  "private": true,
+  "scripts": {
+    "dev": "mint dev",
+    "broken-links": "mint broken-links"
+  },
+  "devDependencies": {
+    "mint": "latest"
+  }
+}

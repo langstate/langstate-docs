@@ -1,0 +1,11 @@
+{
+  "name": "langstate-site",
+  "private": true,
+  "scripts": {
+    "dev:docs": "pnpm --filter @langstate/docs dev",
+    "check:docs": "pnpm --filter @langstate/docs broken-links",
+    "dev:homepage": "pnpm --filter @langstate/homepage dev",
+    "build:homepage": "pnpm --filter @langstate/homepage build",
+    "start:homepage": "pnpm --filter @langstate/homepage start"
+  }
+}

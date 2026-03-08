@@ -1,0 +1,189 @@
+---
+title: "Architectural Overview"
+description: "Interpretive-first system layout and boundaries"
+---
+
+LangState organizes systems around an **interpretive-first architecture** where the interaction layer is cleanly separated from the execution layer.
+
+## System Layout
+
+```mermaid
+flowchart TB
+    subgraph "Interaction Layer"
+        Input[User Input] --> Perceiver
+        Perceiver --> IS[Interpretive State]
+        IS --> Interpreter
+        Interpreter --> Output[Response/UI]
+    end
+    
+    subgraph "Commitment Boundary"
+        IS --> Ready{Ready?}
+        Ready -->|Yes| Canonicalizer
+    end
+    
+    subgraph "Execution Layer"
+        Canonicalizer --> CS[Canonical State]
+        CS --> Business[Business Logic]
+        Business --> Actions[Side Effects]
+    end
+```
+
+## Layer Responsibilities
+
+### Interaction Layer
+
+The interaction layer handles all user-facing communication:
+
+| Component | Responsibility |
+|-----------|---------------|
+| **Perceiver** | Ingests and normalizes user input from any modality |
+| **Interpretive State** | Stores evolving understanding of user intent |
+| **Interpreter** | Generates responses and UI based on current state |
+
+**Key properties**:
+- Tolerates ambiguity and incomplete information
+- Supports revision without side effects
+- Operates on interpretive state only
+- Never directly executes business logic
+
+### Execution Layer
+
+The execution layer handles business operations:
+
+| Component | Responsibility |
+|-----------|---------------|
+| **Canonicalizer** | Reduces interpretive state to canonical form |
+| **Canonical State** | Validated, execution-ready business data |
+| **Business Logic** | Domain operations and side effects |
+
+**Key properties**:
+- Requires complete, validated state
+- Executes irreversible operations
+- Operates on canonical state only
+- Follows strict business rules
+
+## Boundaries Between Layers
+
+The architecture enforces clear boundaries:
+
+<CardGroup cols={2}>
+  <Card title="Interaction → Execution" icon="arrow-right">
+    Only through Canonicalizer when state is ready
+  </Card>
+  <Card title="Execution → Interaction" icon="arrow-left">
+    Results flow back as new input to Perceiver
+  </Card>
+</CardGroup>
+
+### Why Boundaries Matter
+
+**Without boundaries**:
+```
+User: "Book for Saturday"
+System: ✗ Creates booking immediately
+User: "Wait, I meant Sunday"
+System: ✗ Must cancel and rebook
+```
+
+**With boundaries**:
+```
+User: "Book for Saturday"
+System: Updates interpretive state
+User: "Wait, I meant Sunday"
+System: Updates interpretive state
+User: "Yes, confirm Sunday"
+System: Canonicalizes and executes
+```
+
+## Data Flow
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant P as Perceiver
+    participant IS as Interpretive State
+    participant I as Interpreter
+    participant C as Canonicalizer
+    participant CS as Canonical State
+    
+    U->>P: Input
+    P->>IS: Update
+    IS->>I: Current State
+    I->>U: Response
+    
+    Note over IS: Multiple turns...
+    
+    U->>P: "Confirm"
+    P->>IS: Update (confirmed)
+    IS->>C: Ready state
+    C->>CS: Canonical state
+    CS->>U: Confirmation
+```
+
+## Component Isolation
+
+Each component has a well-defined interface:
+
+```
+┌─────────────┐     ┌─────────────────┐     ┌─────────────┐
+│  Perceiver  │────▶│ Interpretive    │────▶│ Interpreter │
+│             │     │ State           │     │             │
+│ in: Input   │     │                 │     │ out: Response│
+│ out: Update │     │ in: Updates     │     │             │
+└─────────────┘     │ out: State      │     └─────────────┘
+                    └────────┬────────┘
+                             │
+                             ▼
+                    ┌─────────────────┐     ┌─────────────┐
+                    │  Canonicalizer  │────▶│  Canonical  │
+                    │                 │     │  State      │
+                    │ in: Interp State│     └─────────────┘
+                    │ out: Canon State│
+                    └─────────────────┘
+```
+
+This isolation enables:
+- Independent testing of each component
+- Swapping implementations without system-wide changes
+- Clear contracts between components
+- Parallel development across teams
+
+## Configuration Points
+
+The architecture exposes several configuration points:
+
+| Point | Configuration Options |
+|-------|----------------------|
+| Perceiver | Input modalities, normalization rules |
+| Interpretive State | Schema, confidence thresholds, field constraints |
+| Interpreter | Response strategies, UI generation rules |
+| Canonicalizer | Reduction strategy, validation rules |
+| Commitment Boundary | When to trigger canonicalization |
+
+## Example: Complete Flow
+
+```mermaid
+flowchart LR
+    subgraph Turn1
+        U1[User: Book Friday] --> P1[Perceive]
+        P1 --> IS1[date: Friday]
+        IS1 --> I1[Interpreter]
+        I1 --> R1[Got it, Friday]
+    end
+    
+    subgraph Turn2
+        U2[User: 5 people] --> P2[Perceive]
+        P2 --> IS2[date: Friday<br/>guests: 5]
+        IS2 --> I2[Interpreter]
+        I2 --> R2[5 guests, Friday]
+    end
+    
+    subgraph Turn3
+        U3[User: Confirm] --> P3[Perceive]
+        P3 --> IS3[confirmed: true]
+        IS3 --> Canon[Canonicalize]
+        Canon --> CS[Booking Created]
+    end
+```
+
+The interpretive-first architecture ensures that user intent is fully captured and confirmed before any irreversible actions occur.

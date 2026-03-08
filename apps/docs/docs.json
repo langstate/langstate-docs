@@ -16,20 +16,31 @@
           {
             "group": "Getting started",
             "pages": [
-              "install",
+              "index",
               "quickstart",
-              "rationale"
+              "development"
             ]
           },
           {
             "group": "SUP: An LLM App Design Pattern",
             "pages": [
               "sup/sup",
-              "sup/SUP-vs-MVC",
-              "sup/State",
-              "sup/Updater",
-              "sup/Presenter",
-              "sup/SUP-for-LLM-Evaluation"
+              "sup/sup-vs-mvc",
+              "sup/state",
+              "sup/updater",
+              "sup/presenter",
+              "sup/sup-for-llm-evaluation"
+            ]
+          },
+          {
+            "group": "Interpretive State",
+            "pages": [
+              "interpretive-state/interpretive-state",
+              "interpretive-state/problem-statement",
+              "interpretive-state/natural-conversation",
+              "interpretive-state/generative-ui",
+              "interpretive-state/logical-control",
+              "interpretive-state/token-efficiency"
             ]
           },
           {
