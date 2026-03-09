@@ -4,7 +4,7 @@
     {
       "label": "Docs: Dev",
       "type": "shell",
-      "command": "make dev-docs",
+      "command": "pnpm dev:docs",
       "isBackground": true,
       "presentation": {
         "reveal": "always",
@@ -27,9 +27,20 @@
       ]
     },
     {
+      "label": "Dev: Both",
+      "detail": "Start the docs and homepage dev servers together.",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Docs: Dev", "Homepage: Dev"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "Homepage: Dev",
       "type": "shell",
-      "command": "make dev-homepage",
+      "command": "pnpm dev:homepage",
       "isBackground": true,
       "presentation": {
         "reveal": "always",
@@ -54,7 +65,7 @@
     {
       "label": "Docs: Check Links",
       "type": "shell",
-      "command": "make check-docs",
+      "command": "pnpm check:docs",
       "presentation": {
         "reveal": "always",
         "panel": "shared"
@@ -64,10 +75,34 @@
     {
       "label": "Homepage: Build",
       "type": "shell",
-      "command": "make build-homepage",
+      "command": "pnpm build:homepage",
       "presentation": {
         "reveal": "always",
         "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Docs: Deploy Check",
+      "type": "shell",
+      "detail": "Run Mintlify validation and broken-link checks before publishing docs.",
+      "command": "pnpm validate:docs:deploy",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "group": "deploy"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Homepage: Deploy Preview",
+      "type": "shell",
+      "detail": "Create a Vercel preview deployment for the homepage app.",
+      "command": "pnpm deploy:homepage:preview",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "group": "deploy"
       },
       "problemMatcher": []
     }

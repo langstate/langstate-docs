@@ -6,9 +6,10 @@ This project includes a VS Code dev container so the workspace runs on Node `20.
 
 - Node `20.17`
 - `pnpm 10.18.0`
+- Global `mint` CLI
 - Port forwarding for:
-  - `3000` homepage
-  - `3001` docs
+  - `3000` docs
+  - `3001` homepage
 
 ## Usage
 
@@ -25,6 +26,9 @@ You can also run them from VS Code tasks:
 
 - `Docs: Dev`
 - `Homepage: Dev`
+- `Dev: Both`
+
+The workspace also recommends the `Task Buttons` extension so these tasks can be launched directly from the VS Code status bar.
 
 The apps are independent and can be run separately.
 

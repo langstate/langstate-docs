@@ -4,6 +4,7 @@ node_modules
 .next
 out
 .vercel
+.dev
 coverage
 npm-debug.log*
 pnpm-debug.log*

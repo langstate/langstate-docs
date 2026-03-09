@@ -1,4 +1,4 @@
-.PHONY: dev-docs dev-homepage dev-all check-docs build-homepage
+.PHONY: dev-docs dev-homepage dev-all check-docs build-homepage validate-docs-deploy deploy-homepage-preview
 
 dev-docs:
 	pnpm dev:docs
@@ -16,3 +16,10 @@ check-docs:
 
 build-homepage:
 	pnpm build:homepage
+
+validate-docs-deploy:
+	pnpm --filter @langstate/docs exec mint validate
+	pnpm check:docs
+
+deploy-homepage-preview:
+	cd apps/homepage && vercel deploy -y

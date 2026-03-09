@@ -5,7 +5,7 @@ cd /workspace
 pnpm install
 
 cd /workspace/apps/docs
-pnpm dev -- --no-open &
+pnpm dev &
 MINT_PID=$!
 
 # Mintlify may bind to loopback inside the container. Re-expose it on 0.0.0.0:3001.

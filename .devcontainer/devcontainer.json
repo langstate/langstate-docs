@@ -21,7 +21,8 @@
         "ms-vscode.vscode-eslint",
         "redhat.vscode-yaml",
         "tamasfe.even-better-toml",
-        "unifiedjs.vscode-mdx"
+        "unifiedjs.vscode-mdx",
+        "spencerwmiles.vscode-task-buttons"
       ],
       "settings": {
         "editor.formatOnSave": true,
@@ -34,11 +35,11 @@
   "forwardPorts": [3000, 3001],
   "portsAttributes": {
     "3000": {
-      "label": "Homepage",
+      "label": "Docs",
       "onAutoForward": "notify"
     },
     "3001": {
-      "label": "Docs",
+      "label": "Homepage",
       "onAutoForward": "notify"
     }
   },

@@ -11,6 +11,8 @@ pnpm install
 pnpm dev:docs
 ```
 
+Mintlify serves the local preview on `http://localhost:3000`.
+
 Or from this directory directly:
 
 ```bash
