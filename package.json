@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "dev:docs": "bash scripts/run-docs-dev.sh",
+    "dev:ports:show": "bash scripts/show-dev-ports.sh",
     "dev:ports:reset": "bash scripts/reset-dev-ports.sh",
     "check:docs": "bash scripts/run-docs-check.sh",
     "validate:docs:deploy": "bash scripts/run-docs-deploy-check.sh",

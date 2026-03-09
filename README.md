@@ -42,6 +42,12 @@ If you want to force the next launch to pick a new free pair, run:
 pnpm dev:ports:reset
 ```
 
+To print the currently saved host URLs and the active Docker port publishes, run:
+
+```bash
+pnpm dev:ports:show
+```
+
 The same Docker fallback is used for the docs validation tasks exposed through `pnpm check:docs` and `pnpm validate:docs:deploy`.
 
 If your local Node version is below Mintlify's minimum requirement, run both apps in containers instead:

@@ -21,7 +21,7 @@
           "background": {
             "activeOnStart": true,
             "beginsPattern": "preparing local preview",
-            "endsPattern": "preview ready"
+            "endsPattern": "DOCS HOST URL:"
           }
         }
       ]
@@ -69,6 +69,17 @@
       "presentation": {
         "reveal": "always",
         "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Dev: Show Ports",
+      "type": "shell",
+      "command": "pnpm dev:ports:show",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "group": "dev"
       },
       "problemMatcher": []
     },

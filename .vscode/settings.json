@@ -24,6 +24,11 @@
           "label": "Dev: Both",
           "task": "Dev: Both",
           "description": "Start both dev servers."
+        },
+        {
+          "label": "Dev: Show Ports",
+          "task": "Dev: Show Ports",
+          "description": "Show the saved host URLs and Docker port publishes."
         }
       ]
     },

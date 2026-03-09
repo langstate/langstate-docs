@@ -98,4 +98,6 @@ load_or_assign_dev_ports() {
 
 print_dev_ports_summary() {
   printf 'Using host ports: homepage=%s docs=%s\n' "$HOMEPAGE_PORT" "$DOCS_PORT"
+  printf 'Homepage URL: http://localhost:%s\n' "$HOMEPAGE_PORT"
+  printf 'Docs URL:     http://localhost:%s\n' "$DOCS_PORT"
 }
