@@ -45,6 +45,7 @@ jobs:
 
   pinned-source:
     name: Pinned implementation smoke tests
+    needs: mintlify
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
