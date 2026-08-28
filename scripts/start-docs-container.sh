@@ -2,7 +2,7 @@
 set -euo pipefail
 
 cd /workspace
-pnpm install
+pnpm install --frozen-lockfile
 
 cd /workspace/apps/docs
 pnpm dev &
