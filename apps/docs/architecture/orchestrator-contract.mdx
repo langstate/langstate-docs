@@ -1,0 +1,78 @@
+---
+title: Orchestrator contract
+description: The abstract LangState lifecycle and its exact source-level method names.
+---
+
+`LangState` is an abstract generic class that holds component references and defines an application-facing lifecycle. The pinned source does not include a concrete subclass, so it cannot be instantiated directly.
+
+## Required methods
+
+An application subclass implements:
+
+```python
+from typing import Optional
+
+from core.langstate.base.langstate import LangState
+from core.langstate.base.schema import (
+    ActionResultData,
+    AgentInput,
+    InteractionRequest,
+    LangStateConfig,
+)
+
+
+class ApplicationLangState(LangState):
+    async def initialize(self, config: LangStateConfig) -> None:
+        ...
+
+    async def invoke(
+        self,
+        agent_input: Optional[AgentInput] = None,
+        metadata: Optional[dict[str, object]] = None,
+    ) -> InteractionRequest | ActionResultData:
+        ...
+
+    async def get_current_state(self):
+        ...
+
+    async def get_canonical_state(self):
+        ...
+
+    async def reset(self) -> InteractionRequest:
+        ...
+```
+
+The interpretive accessor is `get_current_state()`. A completed invocation returns `ActionResultData`, not `StateResultData`.
+
+## Constructor components
+
+`LangState.__init__()` accepts optional:
+
+- `BaseSpecExtractor`
+- `BaseMutator`
+- `BaseProjectorCanonicalState`
+- one `BaseProjectorUI` or a list of UI projectors
+
+The base class stores schema, canonical and interpretive state references, conversation history, and action handlers. It exposes setters and read-only component properties, but the subclass owns initialization and invocation sequencing.
+
+## Invocation result models
+
+`InteractionRequest` represents another user interaction. It can carry a prompt, UI components, options, pending fields, `InterpretiveStateSchema`, and `CanonicalStateSchema`.
+
+`ActionResultData` represents completion:
+
+```python
+ActionResultData(
+    state=interpretive_schema,
+    canonical_state=canonical_schema,
+    success=True,
+    action_data={"registration_id": "registration-17"},
+    metadata={},
+)
+```
+
+This model is distinct from `ActionResult` in the action module. `ActionResult` describes an individual action execution with an `ActionStatus`; `ActionResultData` is the orchestrator's completed-flow payload.
+
+## Application responsibility
+
+The abstract contract does not automatically connect repositories, snapshots, actions, mutators, or projectors. A subclass must define ordering, error handling, concurrency, persistence, transaction boundaries, and how component results are converted to the Pydantic boundary models.

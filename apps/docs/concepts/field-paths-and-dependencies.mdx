@@ -1,0 +1,46 @@
+---
+title: Field paths and dependencies
+description: Address nested state and model dependency edges in the DAH-backed runtime.
+---
+
+All state operations use string paths. Dots describe nested objects and array positions:
+
+```text
+registrant.name
+event.schedule
+guests.0.email
+guests.0.invitation.send_at
+```
+
+## Parent hierarchy
+
+`set_field("guests.0.email", value)` ensures intermediate nodes such as `guests` and `guests.0` exist. It also adds parent-to-child dependency edges for each path segment.
+
+```python
+from core.state.canonical.state import CanonicalState
+
+state = CanonicalState()
+state.set_field("guests.0.email", "grace@example.com")
+
+assert set(state.get_children("guests")) == {"guests.0"}
+assert set(state.get_children("guests.0")) == {"guests.0.email"}
+```
+
+The ordering of returned child paths is not documented; compare sets if order does not matter to your application.
+
+## Explicit dependencies
+
+Use `add_field_dependency()` for an additional single-source dependency:
+
+```python
+state.set_field("registrant.email", "ada@example.com")
+state.add_field_dependency("registrant.email", "status")
+
+assert "status" in state.get_children("registrant.email")
+```
+
+The underlying directed acyclic hypergraph also supports multi-source hyperedges. That structure is exposed through `get_dah()` and is currently an internal-oriented API; see [DAH-backed storage](/architecture/dah-storage) before depending on it directly.
+
+## Node identity
+
+Paths are the public lookup keys. Each node also receives a UUID, available through `get_field_uuid(path)`. UUIDs are useful for graph identity but should not replace paths in user-facing or persisted contracts unless your application explicitly manages that mapping.

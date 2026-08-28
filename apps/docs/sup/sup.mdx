@@ -1,0 +1,30 @@
+---
+title: State-Updater-Presenter
+description: A design pattern that separates state, mutation, and presentation responsibilities.
+---
+
+<Warning>
+  **Design note.** SUP is a conceptual pattern. The diagram and responsibilities below are not a map of fully implemented LangState orchestration.
+</Warning>
+
+![Conceptual State-Updater-Presenter architecture](/images/sup-architecture.png)
+
+State-Updater-Presenter (SUP) separates three responsibilities:
+
+- **State** is the explicit artifact that records current information.
+- **Updater** interprets input and changes state.
+- **Presenter** reads state and creates a user-facing representation.
+
+The pattern is useful when an agent loop otherwise mixes extraction, business data, and response generation in one opaque step.
+
+## Relationship to the source
+
+| SUP role | Nearest LangState source concept | Important gap |
+| --- | --- | --- |
+| State | `InterpretiveState` and `CanonicalState` | An application still chooses persistence and authority boundaries |
+| Updater | `BaseMutator` / `LLMMutator` | The full loop and tool policy are not bundled |
+| Presenter | `BaseProjectorUI` | No concrete projector or renderer ships |
+
+SUP can guide an application architecture without implying that every element in the diagram is a current LangState class.
+
+Continue with [State](/sup/state), [Updater](/sup/updater), [Presenter](/sup/presenter), or [SUP versus MVC](/sup/sup-vs-mvc).

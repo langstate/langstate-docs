@@ -1,0 +1,62 @@
+---
+title: Documentation maintenance
+description: Keep routes, examples, and deployment aligned with the pinned implementation.
+---
+
+The Mintlify site lives in `apps/docs`. Mintlify's monorepo documentation path must be configured as `/apps/docs` with no trailing slash.
+
+## Truth policy
+
+1. Pin `repository`, `commit`, and `version` once in `apps/docs/docs.json`.
+2. Verify examples against that exact source commit.
+3. Describe concrete classes as implemented only when they can be imported and exercised.
+4. Label proposals, rationale, and unimplemented flows as **Design Notes**.
+5. Do not substitute the unrelated PyPI project for a source checkout.
+
+## Local setup
+
+Use Node 20.17 and pnpm 10.18, then install from the repository root:
+
+```bash
+corepack enable
+pnpm install --frozen-lockfile
+pnpm dev:docs
+```
+
+## Required checks
+
+```bash
+pnpm docs:validate
+pnpm docs:links
+pnpm docs:a11y
+pnpm docs:structure
+pnpm docs:source-smoke
+git diff --check
+```
+
+`docs:structure` enforces exact-case navigation paths and checks internal Markdown/MDX links, component `href` values, and image sources. `docs:source-smoke` checks out the pinned implementation and runs the code paths used by the examples.
+
+## Routes and redirects
+
+- Add every intended public page to `docs.json` navigation.
+- Use lowercase route paths.
+- When moving a published page, add a permanent redirect only when the destination is genuinely equivalent.
+- Do not redirect arbitrary typos or removed starter features to unrelated product pages.
+- Keep the custom 404 page non-redirecting so an unknown URL remains an honest 404.
+
+## Content review
+
+Before merging:
+
+- search for stale class and method names;
+- remove numerical product claims unless they are reproducible measurements with context;
+- ensure every code block uses runnable `core.*` source-checkout imports;
+- confirm images have meaningful alternative text;
+- inspect rendered desktop and mobile navigation; and
+- fetch every rendered internal destination, because static Markdown checks can miss generated navigation failures.
+
+## Release verification
+
+After deployment, run the production crawler and Playwright verification. Confirm canonical routes return 200, legacy redirects return 308 and terminate at 200, no linked asset or `_rsc` request returns 404, and `/llms.txt` lists only intended LangState pages.
+
+If cutover fails, restore the previous Mintlify project root and revert the promotion. A successful build is not production proof; record the live route and browser readback before declaring the docs recovered.

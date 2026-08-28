@@ -1,0 +1,47 @@
+---
+title: LangState
+description: Source-aligned documentation for LangState's state primitives and extension contracts.
+---
+
+LangState is an early Python framework for representing uncertain, inferred application state alongside a resolved business state. It provides state data structures, schema extraction, mutation and projection contracts, evaluation helpers, and storage interfaces for systems that collect structured data through natural interaction.
+
+<Warning>
+  LangState is a **source-only alpha**. There is no LangState release to install from PyPI, and the `langstate` name on PyPI belongs to an unrelated project. Start with [Installation](/installation) and a pinned source checkout.
+</Warning>
+
+## Documentation baseline
+
+These pages describe repository version **{{version}}**, pinned to commit [`{{commit}}`](https://github.com/langstate/langstate/commit/df40bc49bc8e3a51b2bb695b30ff93ef81b2cc4b). The documented verification command passes **628 tests** at that commit.
+
+| Area | What exists at the pinned commit |
+| --- | --- |
+| State | Canonical and interpretive state implementations backed by a directed acyclic hypergraph |
+| Schema input | An `OpenAPIReader` and `StateFactory` used by the Registration integration test |
+| Mutation | Abstract mutator contracts plus an `LLMMutator` that depends on a caller-supplied LLM client |
+| Projection | Abstract canonical-state and UI projector contracts |
+| Evaluation | Field-by-field mutator evaluation through `LLMEvaluator` |
+| Persistence | Independent in-memory state repository and bounded snapshot store |
+| Orchestration | An abstract `LangState` contract; adopters must provide a subclass and extension implementations |
+
+## Choose a starting point
+
+<CardGroup cols={2}>
+  <Card title="Run the verified checkout" icon="terminal" href="/installation">
+    Install the pinned source and reproduce the package test baseline.
+  </Card>
+  <Card title="Create state from OpenAPI" icon="brackets-curly" href="/quickstart">
+    Exercise the concrete schema reader and state implementations.
+  </Card>
+  <Card title="Understand the two states" icon="diagram-project" href="/concepts/interpretive-state">
+    Distinguish candidate-rich interpretive state from resolved canonical state.
+  </Card>
+  <Card title="Check implementation status" icon="circle-info" href="/implementation-status">
+    See what is concrete, abstract, experimental, or unavailable as a release.
+  </Card>
+</CardGroup>
+
+## Documentation boundaries
+
+The **Documentation** tab describes behavior observable in the pinned source. The **Design Notes** tab preserves useful rationale and forward-looking patterns, but those pages are not promises that the complete behavior is implemented.
+
+For a source-level map, see [Imports](/reference/import-map). For contribution and drift-prevention rules, see [Documentation maintenance](/contributing/documentation).

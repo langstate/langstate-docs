@@ -1,0 +1,64 @@
+---
+title: Interpretive state
+description: Candidate values, confidence, and the latest inference for each field.
+---
+
+`InterpretiveState` represents what a system currently believes about each field. A field can keep multiple candidate values, each with confidence, while retaining the latest inference that produced or explained an update.
+
+```python
+from core.state.interpretive.schema import Inference, ValueConfidence
+from core.state.interpretive.state import InterpretiveState
+
+state = InterpretiveState()
+state.add_value(
+    "registrant.name",
+    ValueConfidence(value="Ada Lovelace", confidence=0.96),
+)
+state.add_value(
+    "registrant.name",
+    ValueConfidence(value="A. Lovelace", confidence=0.42),
+)
+state.add_inference(
+    "registrant.name",
+    Inference(
+        content="The user supplied a full name",
+        mutator_id="registration-extractor",
+        message_id="message-17",
+    ),
+)
+
+best = state.get_best_value("registrant.name")
+assert best.value == "Ada Lovelace"
+```
+
+## Field shape
+
+`InterpretiveFieldState` has exactly two fields:
+
+```json
+{
+  "inference": {
+    "content": "The user supplied a full name",
+    "mutator_id": "registration-extractor",
+    "message_id": "message-17"
+  },
+  "values": [
+    {"value": "Ada Lovelace", "confidence": 0.96},
+    {"value": "A. Lovelace", "confidence": 0.42}
+  ]
+}
+```
+
+`inference` is singular. Calling `add_inference()` again replaces the prior inference for that field. `values` is a list and `get_best_value()` returns the candidate with the greatest numeric confidence.
+
+The Pydantic boundary type is `InterpretiveStateSchema`, a root model mapping field paths to `InterpretiveFieldState` objects. The mutable runtime class is `InterpretiveState`.
+
+## Filled and empty fields
+
+For interpretive state, a field is considered filled when its `InterpretiveFieldState.values` list is non-empty. The presence of an inference by itself does not fill the field.
+
+## Confidence range
+
+`ValueConfidence.confidence` is validated from `-1.0` through `1.0`. The concrete `LLMMutator` prompt asks its model for values between `0.0` and `1.0`, but the schema itself permits the wider range.
+
+See [Canonical state](/concepts/canonical-state) for the resolved representation and [Mutator evaluation](/guides/mutator-evaluation) for expected-versus-actual comparisons.

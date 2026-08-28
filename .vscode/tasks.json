@@ -1,0 +1,121 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Docs: Dev",
+      "type": "shell",
+      "command": "pnpm dev:docs",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "dev"
+      },
+      "problemMatcher": [
+        {
+          "pattern": [
+            {
+              "regexp": "."
+            }
+          ],
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": "preparing local preview",
+            "endsPattern": "DOCS HOST URL:"
+          }
+        }
+      ]
+    },
+    {
+      "label": "Dev: Both",
+      "detail": "Start the docs and homepage dev servers together.",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Docs: Dev", "Homepage: Dev"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Homepage: Dev",
+      "type": "shell",
+      "command": "pnpm dev:homepage",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "dev"
+      },
+      "problemMatcher": [
+        {
+          "pattern": [
+            {
+              "regexp": "."
+            }
+          ],
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": "Starting",
+            "endsPattern": "Ready in"
+          }
+        }
+      ]
+    },
+    {
+      "label": "Docs: Check Links",
+      "type": "shell",
+      "command": "pnpm check:docs",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Dev: Show Ports",
+      "type": "shell",
+      "command": "pnpm dev:ports:show",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "group": "dev"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Homepage: Build",
+      "type": "shell",
+      "command": "pnpm build:homepage",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Docs: Deploy Check",
+      "type": "shell",
+      "detail": "Run Mintlify validation and broken-link checks before publishing docs.",
+      "command": "pnpm validate:docs:deploy",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "group": "deploy"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Homepage: Deploy Preview",
+      "type": "shell",
+      "detail": "Create a Vercel preview deployment for the homepage app.",
+      "command": "pnpm deploy:homepage:preview",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "group": "deploy"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

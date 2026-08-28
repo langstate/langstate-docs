@@ -1,0 +1,55 @@
+---
+title: Installation
+description: Install and verify LangState from its pinned source checkout.
+---
+
+LangState is not currently distributed as a usable public package. Work from the pinned source tree.
+
+<Warning>
+  Do **not** run `pip install langstate`. The [PyPI project named `langstate`](https://pypi.org/pypi/langstate/) is unrelated to this repository.
+</Warning>
+
+## Prerequisites
+
+- Git
+- Python 3.10 or newer, within the source package's declared Python 3 range
+- [Poetry](https://python-poetry.org/docs/#installation)
+
+## Checkout and install
+
+```bash
+git clone https://github.com/langstate/langstate.git
+cd langstate
+git checkout df40bc49bc8e3a51b2bb695b30ff93ef81b2cc4b
+cd packages/langstate
+poetry install --no-root --with dev
+```
+
+`--no-root` is intentional. At the pinned commit, package metadata points to a public package layout that is not present, so editable/root installation is not release-ready. Poetry can still create the environment and install the development dependencies used by the source tree.
+
+## Verify the baseline
+
+From `packages/langstate`:
+
+```bash
+poetry run python -m pytest -q
+```
+
+Expected result at `{{commit}}`:
+
+```text
+628 passed
+```
+
+Use `python -m pytest`, not a bare `pytest` executable. The module form places the current source directory on Python's import path, which is required for the current `core.*` layout.
+
+## Import model
+
+Examples in these docs run from `packages/langstate` and import modules such as:
+
+```python
+from core.state.canonical.state import CanonicalState
+from core.state.interpretive.state import InterpretiveState
+```
+
+These are source-checkout imports, not a stable installed-package API. See [Implementation status](/implementation-status) before integrating LangState into another project.

@@ -1,0 +1,14 @@
+---
+title: Updater in SUP
+description: Interpret input and propose state changes without owning presentation.
+---
+
+<Note>
+  **Design note.** `LLMMutator` is one updater adapter; SUP does not require an LLM.
+</Note>
+
+An updater consumes input plus current state and produces an updated state. It should not need to choose final presentation copy or render components.
+
+Potential updater implementations include deterministic parsers, form submissions, tool results, or LLM extraction. In LangState, `BaseMutator` is the nearest contract and `LLMMutator` appends candidates plus the latest inference to a copied `InterpretiveState`.
+
+Keep provider calls, retries, and authentication visible in the adapter boundary. Evaluate updater output against expected state before evaluating the tone or layout of the presentation.

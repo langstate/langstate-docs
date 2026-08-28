@@ -1,0 +1,19 @@
+---
+title: SUP for LLM evaluation
+description: Evaluate state updates separately from presentation quality.
+---
+
+<Note>
+  **Design note.** The source evaluator covers mutator state output. Presenter and end-to-end SUP evaluators are proposed application work.
+</Note>
+
+SUP creates useful evaluation seams:
+
+1. **Updater evaluation:** compare pre-state plus input with expected post-state. `LLMEvaluator` supports this seam today.
+2. **State evaluation:** validate invariants, required paths, candidate conflicts, and canonical resolution.
+3. **Presenter evaluation:** inspect whether prompts and components accurately represent state and request the right next information.
+4. **End-to-end evaluation:** verify the combined loop terminates and performs the expected application action.
+
+Separating these checks helps locate a failure. A correct extraction paired with a confusing prompt is a presentation problem; a polished prompt paired with the wrong field value is an update problem.
+
+Use exact source and dataset versions when reporting results. The pattern itself provides separation, not an automatic quality improvement.

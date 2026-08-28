@@ -1,0 +1,39 @@
+---
+title: Canonical state
+description: Resolved business values addressed by stable field paths.
+---
+
+`CanonicalState` holds the resolved values an application can use for validation or actions. Unlike interpretive state, a canonical field stores a value directly rather than candidates and inference metadata.
+
+```python
+from core.state.canonical.schema import CanonicalStateSchema
+from core.state.canonical.state import CanonicalState
+
+state = CanonicalState()
+state.set_field("registrant.name", "Ada Lovelace")
+state.set_field("registrant.email", "ada@example.com")
+state.set_field("guests.0.name", "Grace Hopper")
+
+assert state.get_field("registrant.email") == "ada@example.com"
+
+payload = CanonicalStateSchema(root=state.get_all_fields())
+print(payload.model_dump())
+```
+
+## Runtime class and schema
+
+| Type | Purpose |
+| --- | --- |
+| `CanonicalState` | Mutable, DAH-backed runtime state |
+| `CanonicalStateSchema` | Pydantic root model containing `dict[str, object]` |
+| `CanonicalFieldValue` | Current alias for `object` |
+
+A canonical field is filled when its value is not `None`. Parent paths created for nested fields may hold `None`; use `get_filled_fields()` when you only want populated paths.
+
+## From interpretive to canonical
+
+The source defines `BaseProjectorCanonicalState` and the associated projection context/result models, but it does not ship a concrete canonical projector. Applications decide how candidates are selected and validated—for example, by confidence threshold, deterministic rules, user confirmation, or a custom resolver.
+
+That distinction is important: `StateFactory.create_interpretive_state()` derives interpretive state from canonical state, but the reverse projection is an extension point rather than an automatic built-in workflow.
+
+See [Extension points](/architecture/extension-points) for projector contracts.

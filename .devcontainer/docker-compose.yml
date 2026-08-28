@@ -1,0 +1,35 @@
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - ..:/workspace
+      - langstate-root-node-modules:/workspace/node_modules
+      - langstate-homepage-node-modules:/workspace/apps/homepage/node_modules
+      - langstate-docs-node-modules:/workspace/apps/docs/node_modules
+      - langstate-pnpm-store:/home/node/.local/share/pnpm/store
+    command: >
+      bash -lc "mkdir -p
+      /workspace/node_modules
+      /workspace/apps/homepage/node_modules
+      /workspace/apps/docs/node_modules
+      /home/node/.local/share/pnpm/store
+      && chown -R node:node
+      /workspace/node_modules
+      /workspace/apps/homepage/node_modules
+      /workspace/apps/docs/node_modules
+      /home/node/.local/share/pnpm
+      && tail -f /dev/null"
+    user: root
+    working_dir: /workspace
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_DOCS_URL=http://localhost:3000
+    shm_size: 1gb
+
+volumes:
+  langstate-root-node-modules:
+  langstate-homepage-node-modules:
+  langstate-docs-node-modules:
+  langstate-pnpm-store:

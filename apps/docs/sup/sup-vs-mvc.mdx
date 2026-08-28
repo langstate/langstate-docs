@@ -1,0 +1,20 @@
+---
+title: SUP versus MVC
+description: Compare a state-update-presentation loop with the Model-View-Controller pattern.
+---
+
+<Note>
+  **Design note.** This comparison is architectural vocabulary, not a claim that LangState replaces MVC frameworks.
+</Note>
+
+SUP and MVC both separate state from presentation, but they emphasize different boundaries.
+
+| Concern | SUP | MVC |
+| --- | --- | --- |
+| State | Explicit artifact shared across turns | Model containing domain data and behavior |
+| Input handling | Updater interprets input into state changes | Controller handles requests and coordinates model/view |
+| Output | Presenter projects current state | View renders model data |
+| Typical loop | Iterative, possibly uncertain natural interaction | Request/response or event-driven application flow |
+| Key evaluation seam | Expected state transition versus presentation | Controller/model behavior versus view output |
+
+SUP can live inside an MVC application. A controller can authenticate a request and invoke an updater; the model or service layer can own canonical persistence; a view can render presenter output. Choose ownership based on the host application rather than forcing a one-to-one class mapping.

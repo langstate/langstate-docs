@@ -1,0 +1,37 @@
+name: Production documentation verification
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Documentation origin to verify
+        required: false
+        default: https://docs.langstate.com
+  schedule:
+    - cron: "17 7 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  production:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DOCS_BASE_URL: ${{ inputs.base_url || 'https://docs.langstate.com' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.18.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.17.0
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm docs:crawl:production -- "$DOCS_BASE_URL" --check-external
+      - run: pnpm --filter @langstate/docs exec playwright install --with-deps chromium
+      - run: pnpm docs:verify:production

@@ -1,0 +1,47 @@
+---
+title: DAH-backed storage
+description: Internal directed acyclic hypergraph mechanics behind LangState state.
+---
+
+`State` stores fields in a `DirectedAcyclicHypergraph` (DAH). The DAH generalizes a directed acyclic graph by allowing a hyperedge with multiple source nodes and one target node.
+
+## Node indexes
+
+Each node contains:
+
+- a generated UUID used for internal identity;
+- a string path used for public lookup;
+- an optional payload; and
+- incoming hyperedges plus reverse dependent links.
+
+The graph maintains both a UUID-to-node map and a path-to-UUID secondary index. `State.get_field()` and other public state methods address nodes by path.
+
+## Hyperedge semantics
+
+A target may have multiple incoming hyperedges. Readiness follows an **OR of AND groups**: a target is ready when any incoming hyperedge has all of its sources satisfied. Cycle checks treat each source-to-target relationship as a directed edge for ordering.
+
+Single-parent field hierarchy uses one-source hyperedges. Callers can reach the underlying structure with `state.get_dah()` when they need multi-source relationships:
+
+```python
+from core.state.canonical.state import CanonicalState
+
+state = CanonicalState()
+graph = state.get_dah()
+
+graph.add_node("registrant.validated", True)
+graph.add_node("event.selected", True)
+graph.add_hyperedge(
+    ["registrant.validated", "event.selected"],
+    "registration.ready",
+)
+```
+
+## State integration
+
+`set_field()` automatically creates parent nodes and path-segment dependencies. `copy()` recreates nodes and hyperedges in a new state; interpretive state deep-copies its Pydantic field payloads.
+
+`remove_field()` removes the selected node and incident hyperedges. It does not promise a recursive subtree delete, so remove descendant paths explicitly if that is the desired application behavior.
+
+## Stability boundary
+
+DAH classes are importable source modules and have direct unit coverage, but they are internal infrastructure within a source-only alpha. Prefer the `State` methods for application code unless the hypergraph operations are specifically required and tested by your integration.
