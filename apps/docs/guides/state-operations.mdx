@@ -1,0 +1,66 @@
+---
+title: State operations
+description: Read, update, copy, inspect, and remove canonical or interpretive fields.
+---
+
+`CanonicalState` and `InterpretiveState` share the path-based `State` implementation. Their field payloads and fill rules differ, but the structural operations are the same.
+
+## Common methods
+
+| Method | Behavior |
+| --- | --- |
+| `get_field(path)` | Return the field payload, or `None` when the path does not exist |
+| `set_field(path, value)` | Create or update a field and ensure its parent hierarchy |
+| `remove_field(path)` | Remove one node and its incident edges; return whether it existed |
+| `get_all_fields()` | Return every path, including parent nodes whose value is `None` |
+| `iter_fields()` | Iterate over `(path, value)` pairs |
+| `get_filled_fields()` | Return paths that meet the state's fill rule |
+| `get_empty_fields()` | Return paths that do not meet the fill rule |
+| `is_complete(required_fields)` | Check explicitly required paths, or use the implementation's default selection |
+| `copy()` | Copy state data and dependency edges |
+| `to_json()` | Serialize the internal DAH representation |
+
+## Canonical example
+
+```python
+from core.state.canonical.state import CanonicalState
+
+state = CanonicalState()
+state.set_field("registrant.name", "Ada Lovelace")
+state.set_field("registrant.email", None)
+
+assert state.get_filled_fields() == ["registrant.name"]
+assert "registrant.email" in state.get_empty_fields()
+assert not state.is_complete(["registrant.name", "registrant.email"])
+
+copy = state.copy()
+copy.set_field("registrant.email", "ada@example.com")
+
+assert state.get_field("registrant.email") is None
+assert copy.is_complete(["registrant.name", "registrant.email"])
+```
+
+## Interpretive example
+
+```python
+from core.state.interpretive.schema import Inference, ValueConfidence
+from core.state.interpretive.state import InterpretiveState
+
+state = InterpretiveState()
+state.add_value("status", ValueConfidence(value="draft", confidence=0.8))
+state.add_inference(
+    "status",
+    Inference(content="Explicitly requested", mutator_id="rules"),
+)
+
+assert state.get_best_value("status").value == "draft"
+assert state.get_field("status").inference.content == "Explicitly requested"
+```
+
+## Completion checks
+
+Pass an explicit required-field list when completeness matters to business logic. With no list, the base implementation checks only paths that already have non-`None` payloads; it does not infer OpenAPI required fields or enforce schema validation.
+
+## Serialization boundary
+
+`to_json()` exports the DAH graph, including node and dependency structure. For a flat application payload, construct `CanonicalStateSchema` or `InterpretiveStateSchema` from `get_all_fields()` as shown in the [quickstart](/quickstart).

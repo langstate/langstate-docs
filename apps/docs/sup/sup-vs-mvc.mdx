@@ -1,62 +1,20 @@
 ---
-
-title: "SUP vs. MVC"
-description: "SUP borrows MVC’s separation of concerns but restructures responsibilities for dynamic, probabilistic, LLM-driven workflows."
+title: SUP versus MVC
+description: Compare a state-update-presentation loop with the Model-View-Controller pattern.
 ---
 
-Agentic AI applications increasingly resemble conventional software architectures in their need for clarity, modularity, and separation of concerns. To explain these systems more intuitively, the **SUP (State-Updater-Presenter)** pattern draws inspiration from the familiar **MVC** model. However, the probabilistic and conversational nature of AI workflows introduces fundamental differences in how these roles should be structured. This article outlines how SUP adapts each component—state, updater, and presenter—to meet the requirements of agentic, dynamic, and schema-driven AI applications.
+<Note>
+  **Design note.** This comparison is architectural vocabulary, not a claim that LangState replaces MVC frameworks.
+</Note>
 
-### Overview Comparison: MVC vs SUP
+SUP and MVC both separate state from presentation, but they emphasize different boundaries.
 
-| Component      | MVC Role                                                                           | SUP Equivalent     | Key Differences                                                                                                    |
-| -------------- | ---------------------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------ |
-| **Model**      | Defines data structures and persistence logic (often class- or ORM-based).         | **Artifact State** | Schema-first and cross-agent; includes conversational dependencies and state topology (DAG).                       |
-| **Controller** | Handles structured input and predefined workflows; merges logic and state updates. | **Updater**        | Processes unstructured, probabilistic user input; applies deterministic state mutations through unified interface. |
-| **View**       | Renders fixed UI layouts and static presentation templates.                        | **Presenter**      | Generates message-driven and adaptive responses; supports dynamic UI components derived from state.                |
+| Concern | SUP | MVC |
+| --- | --- | --- |
+| State | Explicit artifact shared across turns | Model containing domain data and behavior |
+| Input handling | Updater interprets input into state changes | Controller handles requests and coordinates model/view |
+| Output | Presenter projects current state | View renders model data |
+| Typical loop | Iterative, possibly uncertain natural interaction | Request/response or event-driven application flow |
+| Key evaluation seam | Expected state transition versus presentation | Controller/model behavior versus view output |
 
----
-
-## 1. Artifact State (vs Model)
-
-Unlike conventional software systems that operate through predefined user flows, **agentic applications** must handle spontaneous and unpredictable user input. In such systems, users may express their intent in arbitrary order, making it challenging to maintain a coherent and complete state. The goal of the SUP design for the state is to accommodate this open-ended interaction while preserving structure and interoperability. To achieve this, the State in SUP extends the Model in MVC with schema-level and conversational intelligence to guide progressive completion during dialogue.
-
-**Key Features:**
-
-* **Schema-First Interoperability** – *In conventional MVC:* model design typically happens in the **data or repository tier**, relying on **ORM and class-based definitions** tied to a single runtime environment. Such designs focus primarily on **persistence** and **data storage structure**, not on cross-agent communication or schema portability.
-  In contrast, SUP recommends a **schema-first** approach (e.g., OpenAPI or JSON Schema) rather than class-based modeling. This design allows multi-agent systems to share, validate, and interpret artifact states consistently across languages and frameworks, enabling interoperability and long-term extensibility.
-
-* **DAG Conversational Dependency** – *In conventional MVC:* models are ususual static data structures without considering the **order or dependency** among fields, since data collection occurs through pre-defined forms or APIs rather than adaptive dialogue.
-  In contrast, SUP suggests a **directed acyclic graph (DAG) dependency topology**, defining how fields rely on one another. This topology enables guided questioning and **progressive completion** during multi-turn conversations, helping the model identify what information to gather next and in what logical order.
-
-
----
-
-## 2. Updater (vs Controller)
-
-In the SUP pattern, the **Updater** focuses purely on how the system interprets a user prompt and contextual knowledge to update the artifact state.
-
-The Updater can be designed as a ReAct-style agent that leverages tools, memory, and external knowledge sources to modify the state. Its key distinction is that it focuses solely on **state updates**, not on producing natural-language responses. This clear separation of concerns simplifies evaluation, enhances modularity, and keeps reasoning and presentation cleanly isolated for maintainability and transparency.  
-
-**Key Features:**
-
-* **Undeterministic Input** – *In conventional MVC:* controllers typically receive well-structured inputs (such as form data or API payloads), ensuring predictable control flow. In contrast, the Updater is designed to process **unstructured and probabilistic user inputs**, which may appear in arbitrary order throughout a conversation. Each updater module must interpret these inputs in context—considering **conversation history**, **multi-turn dependencies**, and **previous state changes**—to extract meaningful updates to the artifact state.
-
-* **Dynamic Routing through Unified Interface** – *In conventional MVC:* controllers follow predefined endpoints and fixed logic paths that dictate how inputs are processed. In contrast, the Updater operates through a **unified input interface**, but its routing and internal logic are **dynamically determined** by the current artifact state and conversational context. The same invocation can thus trigger different reasoning routes or update sequences, allowing adaptive control flow while preserving schema consistency.
-
----
-
-## 3. Presenter (vs View)
-
-In traditional web and mobile applications, the View layer is typically complex and highly customized—each workflow or page comes with a carefully designed UI and interaction model. In contrast, in **agentic or generative AI applications**, the Presenter operates within a **message-driven** interface, where communication, not layout, defines the user experience. The focus shifts from crafting unique visual flows to generating consistent, state-aware messages and outputs that adapt dynamically to context.
-
-In agentic systems, the Presenter generates natural-language responses as the main channel of user interaction, but these responses are often paired with **supporting UI components**—such as structured forms, buttons, or visual summaries—to create a smoother user experience. These components can be **dynamically organized** based on parts of the artifact state, allowing the UI to evolve naturally as the conversation and state progress.
-
-**Key Features:**
-
-* **Schema-Agnostic Rendering** – *In conventional MVC:* views are typically **tightly coupled to model structures**, requiring manual adjustment whenever the data model changes. In **agentic applications**, the Presenter is **schema-agnostic**, capable of interpreting any state format as long as it provides contextual information. This enables reuse of the same presentation logic across diverse artifacts and schemas.
-
-   
-* **Reusability** – *In conventional MVC:* view components are often **domain-specific**, tightly bound to an application’s structure and data model. In **agentic applications**, the Presenter can be designed more portable,  dynamically adapts **tone, phrasing, and style** to match user intent, state context, and conversational history. designed to be shared across different agents, artifacts, and workflows.
-* **Generative UI** – *In conventional MVC:* composition between views and controllers typically requires **explicit integration logic** within the codebase. In **agentic systems**, presenters can be **dynamically composed** with other agents, tools, or interface layers, enabling flexible orchestration without manual coupling.
-
----
+SUP can live inside an MVC application. A controller can authenticate a request and invoke an updater; the model or service layer can own canonical persistence; a view can render presenter output. Choose ownership based on the host application rather than forcing a one-to-one class mapping.

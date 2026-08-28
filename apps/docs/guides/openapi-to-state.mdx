@@ -1,0 +1,61 @@
+---
+title: OpenAPI to state
+description: Read a Registration component and initialize LangState state paths.
+---
+
+`OpenAPIReader` reads a local OpenAPI 3 YAML or JSON document and converts one named component schema into LangState's `Schema` model. `StateFactory` then initializes canonical leaf fields from that schema.
+
+The repository's integration test uses a Registration schema. A documentation copy lives at `examples/registration.openapi.yaml`; the pinned source fixture is [`tests/data/schemas/registeration.yaml`](https://github.com/langstate/langstate/blob/df40bc49bc8e3a51b2bb695b30ff93ef81b2cc4b/packages/langstate/tests/data/schemas/registeration.yaml).
+
+## Read the root component
+
+```python
+from pathlib import Path
+
+from core.spec_extractor.openapi.extractor import OpenAPIReader
+
+reader = OpenAPIReader(root_entity="Registration")
+schema = reader.read(Path("tests/data/schemas/registeration.yaml"))
+
+assert set(schema.root) == {
+    "id",
+    "registrant",
+    "event",
+    "guests",
+    "total_price",
+    "status",
+}
+```
+
+Pass `root_entity` explicitly. Although the fixture contains `x-sup.root_entity`, the current reader selects the constructor value rather than discovering that extension automatically.
+
+## Create the states
+
+```python
+from core.state.factory.state_factory import StateFactory
+
+factory = StateFactory()
+canonical = factory.create_canonical_state(schema)
+interpretive = factory.create_interpretive_state(canonical)
+
+assert "registrant.email" in canonical.get_all_fields()
+assert "event.schedule" in canonical.get_all_fields()
+```
+
+The factory recursively initializes primitive leaf fields. Parent object paths are added as part of the state hierarchy, while dynamic array entries such as `guests.0.email` appear when the application writes them.
+
+## What the reader preserves
+
+Each `SchemaField` includes:
+
+- `field_id`, `field_type`, label, and description
+- whether the property appears in the OpenAPI `required` list
+- a default value or nested `SchemaField` mapping
+- selected validation rules such as length, range, pattern, enum, and array limits
+- property-level `x-sup` data inside `metadata`
+
+## Current parser boundaries
+
+The pinned reader resolves direct `$ref` values and recursively parses object properties. Its handling of composed schemas is narrower: the Registration test documents that an array item expressed through `allOf` may not expose all nested item fields during initial parsing. Those indexed paths can still be created dynamically with `set_field()`.
+
+Treat OpenAPI operation endpoints, authentication, request execution, and server URLs as outside this reader's scope. It extracts component state shape; it is not an API client or endpoint playground.

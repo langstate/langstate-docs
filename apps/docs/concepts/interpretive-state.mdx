@@ -1,177 +1,64 @@
 ---
-title: "Interpretive State"
-description: "A flexible, revision-tolerant representation of user intent"
+title: Interpretive state
+description: Candidate values, confidence, and the latest inference for each field.
 ---
 
-**Interpretive State** is the primary substrate for interaction in LangState. It captures user intent in a form that tolerates ambiguity, supports revision, and enables natural conversation flow.
+`InterpretiveState` represents what a system currently believes about each field. A field can keep multiple candidate values, each with confidence, while retaining the latest inference that produced or explained an update.
 
-## Definition
+```python
+from core.state.interpretive.schema import Inference, ValueConfidence
+from core.state.interpretive.state import InterpretiveState
 
-Interpretive State is a **structured representation** of the system's current understanding of user intent, including:
+state = InterpretiveState()
+state.add_value(
+    "registrant.name",
+    ValueConfidence(value="Ada Lovelace", confidence=0.96),
+)
+state.add_value(
+    "registrant.name",
+    ValueConfidence(value="A. Lovelace", confidence=0.42),
+)
+state.add_inference(
+    "registrant.name",
+    Inference(
+        content="The user supplied a full name",
+        mutator_id="registration-extractor",
+        message_id="message-17",
+    ),
+)
 
-- Confirmed values
-- Tentative values with confidence scores
-- Multiple candidate values for ambiguous fields
-- Metadata about how values were derived
+best = state.get_best_value("registrant.name")
+assert best.value == "Ada Lovelace"
+```
 
-Unlike canonical state (which represents final, validated business data), interpretive state is designed for **interaction** — it evolves fluidly as conversation progresses.
+## Field shape
 
-## Key Properties
-
-<CardGroup cols={2}>
-  <Card title="Flexible Structure" icon="shapes">
-    Fields can hold single values, multiple candidates, or partial information
-  </Card>
-  <Card title="Revision-Tolerant" icon="rotate">
-    Any field can be updated or replaced without cascading failures
-  </Card>
-  <Card title="Uncertainty-Aware" icon="question">
-    Confidence scores and status indicators track certainty levels
-  </Card>
-  <Card title="Source-Tracked" icon="fingerprint">
-    Each value records where it came from (user input, inference, default)
-  </Card>
-</CardGroup>
-
-## State Field Anatomy
-
-Each field in interpretive state can carry rich metadata:
+`InterpretiveFieldState` has exactly two fields:
 
 ```json
 {
-  "date": {
-    "value": "2024-03-15",
-    "status": "confirmed",
-    "confidence": 0.95,
-    "source": "user_explicit",
-    "turn": 3
+  "inference": {
+    "content": "The user supplied a full name",
+    "mutator_id": "registration-extractor",
+    "message_id": "message-17"
   },
-  "party_size": {
-    "value": 8,
-    "status": "tentative",
-    "confidence": 0.7,
-    "source": "user_implicit",
-    "alternatives": [6, 10],
-    "turn": 2
-  }
+  "values": [
+    {"value": "Ada Lovelace", "confidence": 0.96},
+    {"value": "A. Lovelace", "confidence": 0.42}
+  ]
 }
 ```
 
-### Status Values
+`inference` is singular. Calling `add_inference()` again replaces the prior inference for that field. `values` is a list and `get_best_value()` returns the candidate with the greatest numeric confidence.
 
-| Status | Meaning |
-|--------|---------|
-| `tentative` | Captured but not confirmed by user |
-| `confirmed` | Explicitly confirmed by user |
-| `inferred` | Derived from other fields or context |
-| `ambiguous` | Multiple candidates, needs clarification |
-| `invalid` | Failed validation, needs correction |
+The Pydantic boundary type is `InterpretiveStateSchema`, a root model mapping field paths to `InterpretiveFieldState` objects. The mutable runtime class is `InterpretiveState`.
 
-### Source Types
+## Filled and empty fields
 
-| Source | Meaning |
-|--------|---------|
-| `user_explicit` | User directly stated the value |
-| `user_implicit` | Inferred from user's indirect statement |
-| `system_default` | System-provided default value |
-| `derived` | Computed from other state fields |
+For interpretive state, a field is considered filled when its `InterpretiveFieldState.values` list is non-empty. The presence of an inference by itself does not fill the field.
 
-## Partial Values
+## Confidence range
 
-Interpretive state gracefully handles **partial information**:
+`ValueConfidence.confidence` is validated from `-1.0` through `1.0`. The concrete `LLMMutator` prompt asks its model for values between `0.0` and `1.0`, but the schema itself permits the wider range.
 
-```json
-{
-  "address": {
-    "street": { "value": "123 Main St", "status": "confirmed" },
-    "city": { "value": null, "status": "pending" },
-    "state": { "value": "CA", "status": "inferred" },
-    "zip": { "value": null, "status": "pending" }
-  }
-}
-```
-
-The system can work with incomplete information, filling in gaps as conversation continues.
-
-## Multi-Candidate Fields
-
-When user input is ambiguous, interpretive state holds **multiple candidates**:
-
-```json
-{
-  "venue": {
-    "candidates": [
-      { "name": "The Grand Hall", "score": 0.8 },
-      { "name": "Grand Ballroom", "score": 0.6 },
-      { "name": "Grande Restaurant", "score": 0.4 }
-    ],
-    "status": "ambiguous",
-    "clarification_needed": true
-  }
-}
-```
-
-The Interpreter can use this to generate clarifying questions, while the UI can display options for user selection.
-
-## Revision and Convergence
-
-Interpretive state naturally supports revision:
-
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant S as State
-    
-    U->>S: "Book for Friday"
-    Note over S: date = Friday (tentative)
-    
-    U->>S: "Actually, make it Saturday"
-    Note over S: date = Saturday (confirmed)
-    
-    U->>S: "Hmm, let me check... yes, Saturday"
-    Note over S: date = Saturday (confirmed, high confidence)
-```
-
-**Convergence** occurs when:
-- Confidence increases over turns
-- Alternatives are eliminated
-- User provides explicit confirmation
-
-## Comparison with Canonical State
-
-| Aspect | Interpretive State | Canonical State |
-|--------|-------------------|-----------------|
-| Purpose | Interaction substrate | Business record |
-| Ambiguity | Tolerated and tracked | Not allowed |
-| Revision | Natural and expected | Requires formal change |
-| Validation | Soft constraints | Hard validation |
-| Lifecycle | Evolves throughout conversation | Created at commitment |
-
-## Example: Full Interpretive State
-
-```json
-{
-  "intent": "event_booking",
-  "event": {
-    "type": { "value": "birthday_party", "status": "confirmed" },
-    "date": { "value": "2024-03-15", "status": "confirmed" },
-    "time": { "value": "18:00", "status": "tentative", "confidence": 0.7 }
-  },
-  "guests": {
-    "count": { "value": 12, "status": "confirmed" },
-    "names": { "value": ["Alice", "Bob"], "status": "partial" }
-  },
-  "venue": {
-    "candidates": ["Room A", "Room B"],
-    "preference": "Room A",
-    "status": "ambiguous"
-  },
-  "formation_status": {
-    "phase": "stabilizing",
-    "coverage": 0.75,
-    "ready_for_commit": false
-  }
-}
-```
-
-This rich representation enables natural interaction, generative UI, and precise evaluation — all built on the foundation of interpretive state.
+See [Canonical state](/concepts/canonical-state) for the resolved representation and [Mutator evaluation](/guides/mutator-evaluation) for expected-versus-actual comparisons.

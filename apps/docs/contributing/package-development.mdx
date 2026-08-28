@@ -1,0 +1,48 @@
+---
+title: Package development
+description: Reproduce and extend the pinned LangState source package.
+---
+
+Package implementation work belongs in [`langstate/langstate`](https://github.com/langstate/langstate). This documentation repository does not vendor or modify the Python source.
+
+## Development checkout
+
+```bash
+git clone https://github.com/langstate/langstate.git
+cd langstate
+git checkout df40bc49bc8e3a51b2bb695b30ff93ef81b2cc4b
+cd packages/langstate
+poetry install --no-root --with dev
+```
+
+The `--no-root` flag is required at the pinned baseline because the declared install package is not present in the expected layout.
+
+## Test commands
+
+Run the complete baseline:
+
+```bash
+poetry run python -m pytest -q
+```
+
+Run one area while developing:
+
+```bash
+poetry run python -m pytest tests/unit/state/test_interpretive_state.py -q
+poetry run python -m pytest tests/integration/core/test_state_from_openapi.py -q
+```
+
+Collect coverage when needed:
+
+```bash
+poetry run python -m pytest --cov=core --cov-report=term-missing
+```
+
+## Contribution boundaries
+
+- Add tests beside source changes, including import and Pydantic-shape coverage for public contracts.
+- Treat packaging and a stable installed import surface as explicit release work, not as already solved.
+- Keep concrete behavior and forward-looking architecture distinct in change descriptions.
+- If a source change alters names, fields, imports, or verification output, update this documentation repository and its pinned commit in the same release process.
+
+Open implementation discussions in the [LangState issue tracker](https://github.com/langstate/langstate/issues).

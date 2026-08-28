@@ -1,12 +1,24 @@
 {
   "name": "langstate-site",
   "private": true,
+  "packageManager": "pnpm@10.18.0",
+  "engines": {
+    "node": "20.17.x",
+    "pnpm": "10.18.x"
+  },
   "scripts": {
     "dev:docs": "bash scripts/run-docs-dev.sh",
     "dev:ports:show": "bash scripts/show-dev-ports.sh",
     "dev:ports:reset": "bash scripts/reset-dev-ports.sh",
     "check:docs": "bash scripts/run-docs-check.sh",
     "validate:docs:deploy": "bash scripts/run-docs-deploy-check.sh",
+    "docs:validate": "pnpm --filter @langstate/docs validate",
+    "docs:links": "pnpm --filter @langstate/docs broken-links",
+    "docs:a11y": "pnpm --filter @langstate/docs a11y",
+    "docs:structure": "node scripts/validate-docs-structure.mjs",
+    "docs:source-smoke": "bash scripts/smoke-pinned-source.sh",
+    "docs:crawl:production": "node scripts/crawl-docs-production.mjs",
+    "docs:verify:production": "node scripts/verify-docs-playwright.mjs",
     "dev:homepage": "bash scripts/run-homepage-dev.sh",
     "build:homepage": "pnpm --filter @langstate/homepage build",
     "deploy:homepage:preview": "vercel deploy apps/homepage -y",

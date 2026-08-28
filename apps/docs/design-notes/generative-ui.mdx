@@ -1,0 +1,37 @@
+---
+title: Generative UI
+description: Design guidance for projecting state into prompts and interface components.
+---
+
+<Note>
+  **Design note.** LangState defines UI projection contracts and component schemas, but it does not ship a concrete UI projector or renderer.
+</Note>
+
+The UI projection models can describe prompts, component suggestions, completion status, and next fields. A proposed application loop is:
+
+```text
+current states -> UI projector -> UIProjectionResult -> application renderer
+user interaction -> AgentInput or StructuredInput -> mutator
+```
+
+## Stable contract, replaceable renderer
+
+`UIComponent` describes a component type, field ID, label, placeholder, options, validation rules, required/disabled flags, and metadata. The `UIComponentType` enum includes text inputs, selections, dates, files, buttons, sliders, toggles, autocomplete, and custom components.
+
+The host application decides how those data models map to React, native UI, chat controls, accessibility behavior, and design-system components.
+
+## Projection responsibilities
+
+A useful UI projector can:
+
+- identify unresolved or low-confidence fields;
+- choose a component appropriate for the field schema;
+- explain why confirmation is needed;
+- preserve a stable `field_id` across turns; and
+- return deterministic validation metadata where possible.
+
+Avoid making the UI projector the hidden owner of persistence or business actions. It should project state; the application should define how interactions are authenticated, applied, and committed.
+
+## Evaluation questions
+
+Test generated UI for schema correctness, field identity, keyboard access, screen-reader labels, error recovery, and whether submitted data returns to the intended state path. Do not infer lower cost or higher reliability merely from using structured components; measure those outcomes in the target workflow.

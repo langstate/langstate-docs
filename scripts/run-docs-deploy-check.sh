@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-node_major="$(node -p "process.versions.node.split('.')[0]")"
-node_minor="$(node -p "process.versions.node.split('.')[1]")"
+node_version="$(node -p "process.versions.node")"
+pnpm_version="$(pnpm --version)"
 
-if [ "$node_major" -gt 20 ] || { [ "$node_major" -eq 20 ] && [ "$node_minor" -ge 17 ]; }; then
-  pnpm --filter @langstate/docs exec mint validate
-  exec pnpm --filter @langstate/docs broken-links
+if [ "$node_version" = "20.17.0" ] && [ "$pnpm_version" = "10.18.0" ]; then
+  pnpm docs:validate
+  pnpm docs:links
+  pnpm docs:a11y
+  exec pnpm docs:structure
 fi
 
-printf 'Node %s is below Mintlify minimum 20.17; running docs deploy checks in Docker instead.\n' "$(node -p "process.versions.node")"
-exec docker compose run --rm --entrypoint bash docs -lc "cd /workspace && pnpm install && cd /workspace/apps/docs && pnpm exec mint validate && pnpm exec mint broken-links"
+printf 'Deploy checks require Node 20.17.0 and pnpm 10.18.0 (found Node %s, pnpm %s); using the pinned Docker toolchain.\n' "$node_version" "$pnpm_version"
+exec docker compose run --rm --entrypoint bash docs -lc "cd /workspace && pnpm install --frozen-lockfile && pnpm docs:validate && pnpm docs:links && pnpm docs:a11y && pnpm docs:structure"

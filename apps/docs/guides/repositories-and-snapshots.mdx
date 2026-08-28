@@ -1,0 +1,76 @@
+---
+title: Repositories and snapshots
+description: Store current state and bounded historical copies with separate utilities.
+---
+
+The pinned source provides two independent storage abstractions:
+
+- `BaseStateRepository` stores state by caller-supplied ID.
+- `BaseSnapshotStore` records chronological state copies attributed to a mutator ID.
+
+Neither is automatically owned or invoked by the abstract `LangState` orchestrator.
+
+## In-memory repository
+
+```python
+import asyncio
+
+from core.state.canonical.state import CanonicalState
+from core.state.repository.memory import InMemoryStateRepository
+
+
+async def main() -> None:
+    repository = InMemoryStateRepository[CanonicalState]()
+
+    state = CanonicalState()
+    state.set_field("status", "draft")
+
+    await repository.save("registration-17", state)
+    restored = await repository.get("registration-17")
+
+    assert restored is state
+    assert await repository.exists("registration-17")
+    assert await repository.delete("registration-17")
+
+
+asyncio.run(main())
+```
+
+The in-memory repository stores the state object itself, not a copy. Mutating a retrieved object therefore mutates the stored object. Use it for tests or process-local sessions, not durable or distributed persistence.
+
+`get_or_create(state_id, factory)` is supplied by the base repository. `clear()` is a synchronous convenience on the in-memory implementation.
+
+## Bounded snapshots
+
+```python
+import asyncio
+
+from core.state.interpretive.schema import ValueConfidence
+from core.state.interpretive.state import InterpretiveState
+from core.state.snapshot.memory import InMemorySnapshotStore
+
+
+async def main() -> None:
+    store = InMemorySnapshotStore[InterpretiveState](max_snapshots=2)
+    state = InterpretiveState()
+
+    state.add_value("status", ValueConfidence(value="draft", confidence=0.7))
+    await store.record_snapshot("extractor-1", state)
+
+    state.add_value("status", ValueConfidence(value="confirmed", confidence=0.9))
+    await store.record_snapshot("extractor-1", state)
+
+    latest = await store.get_latest()
+    assert latest is not None
+    assert latest.index == 1
+    assert (await store.count()) == 2
+
+
+asyncio.run(main())
+```
+
+`record_snapshot()` calls `state.copy()` before storing an immutable `Snapshot` dataclass. The default capacity is 100; when capacity is exceeded, the oldest stored snapshot is discarded. Snapshot indexes count total recordings and are not renumbered after eviction.
+
+## Production integrations
+
+Database, cache, synchronization, serialization, tenancy, and retention policies are application responsibilities. Implement the base interfaces and test copy/identity semantics explicitly for your backend.

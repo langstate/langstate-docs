@@ -1,0 +1,48 @@
+---
+title: State formation and reduction
+description: A proposed loop for accumulating evidence and resolving canonical values.
+---
+
+<Note>
+  **Design note.** The concrete state classes and `LLMMutator` exist, but the complete loop described here requires an application-defined `LangState` subclass and canonical projector.
+</Note>
+
+State formation and reduction are two complementary phases.
+
+## Formation
+
+Formation turns input into interpretive candidates:
+
+```text
+input -> mutator -> candidate value + confidence + latest inference
+```
+
+The included `LLMMutator` demonstrates one formation adapter. It copies interpretive state, validates a JSON array of extractions, appends candidates, and records the latest inference per affected field.
+
+An application may also form state from deterministic parsers, UI submissions, retrieved records, or tools. Each mutator should make the source and identity of its update inspectable.
+
+## Reduction
+
+Reduction chooses what becomes canonical:
+
+```text
+interpretive candidates -> validation and resolution -> canonical value
+```
+
+Possible policies include:
+
+- highest confidence above an application threshold;
+- exact deterministic validation;
+- explicit user confirmation;
+- agreement between independent extractors; or
+- domain-specific conflict resolution.
+
+The source defines `BaseProjectorCanonicalState` and projection result models, but no concrete reduction policy is bundled.
+
+## Iteration
+
+A full application may alternate formation and reduction until required fields are resolved, then return `ActionResultData`. The application owns termination, retry limits, persistence, and error handling. Use explicit required-field lists; the base state does not infer business completeness from OpenAPI by itself.
+
+## Design invariant
+
+Keep candidate evidence and authoritative values distinguishable even if they share field paths. This makes correction and evaluation possible without pretending that every inferred candidate is already a business fact.

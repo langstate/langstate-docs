@@ -1,0 +1,38 @@
+---
+title: Why interpretive-first state?
+description: Design rationale for separating uncertain interpretation from authoritative values.
+---
+
+<Note>
+  **Design note.** This page explains the rationale behind LangState. It is not a claim that a complete application loop or production integration is bundled.
+</Note>
+
+Natural interaction often produces partial, ambiguous, or contradictory information. Writing every extracted phrase directly into business state collapses three separate questions:
+
+1. What might the user mean?
+2. How strongly does the system support each candidate?
+3. Which value is authoritative enough for an application action?
+
+LangState's dual-state design gives those questions different representations.
+
+## Two roles
+
+**Interpretive state** is evidence-oriented. It keeps candidate values, confidence, and the latest inference for a field.
+
+**Canonical state** is decision-oriented. It keeps the resolved values that downstream validation or business logic can consume.
+
+The boundary allows an application to inspect uncertainty, request confirmation, apply deterministic constraints, or compare alternative resolvers before committing a value.
+
+## Why not only a transcript?
+
+A transcript preserves conversation but does not itself provide stable field paths, typed boundary models, dependency relationships, or a clear answer to “what is the current value of this field?” LangState treats conversation as potential evidence and state as an explicit artifact.
+
+## Why not write canonical state immediately?
+
+Immediate writes can be appropriate for deterministic inputs. For inferred inputs, retaining candidates makes correction and evaluation more explicit. The application can choose its resolution policy instead of embedding it invisibly in extraction.
+
+## Costs and tradeoffs
+
+The split adds model types, conversion logic, and lifecycle decisions. It does not automatically improve accuracy, latency, or cost. Those outcomes depend on the mutator, projector, prompts, models, data, and application rules and must be measured for the actual system.
+
+For shipped behavior, return to [Interpretive state](/concepts/interpretive-state), [Canonical state](/concepts/canonical-state), and [Implementation status](/implementation-status).

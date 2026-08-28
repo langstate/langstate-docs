@@ -1,14 +1,23 @@
-# LangState Site Monorepo
+# LangState documentation and site monorepo
 
 This repository now contains two independently deployable apps:
 
 - `apps/docs`: the Mintlify documentation site
 - `apps/homepage`: the Next.js homepage / marketing site
 
-## Install
+The Python implementation is maintained separately at [langstate/langstate](https://github.com/langstate/langstate). Changes in this repository are documentation and website changes only.
+
+## Toolchain
+
+- Node 20.17.0
+- pnpm 10.18.0
+- Mintlify CLI 4.2.416
+
+Use `.nvmrc` or `.node-version`, then install:
 
 ```bash
-pnpm install
+corepack enable
+pnpm install --frozen-lockfile
 ```
 
 ## Local development
@@ -76,7 +85,7 @@ DOCS_PORT=3101 HOMEPAGE_PORT=3100 pnpm docker:up
 
 ## Dev Container
 
-This repo also includes a VS Code dev container in [`.devcontainer/README.md`](/Users/liqingpan/Projects/langstate-docs/.devcontainer/README.md) so you can work inside Node `20.17` without depending on the host runtime.
+This repo also includes a VS Code dev container in [`.devcontainer/README.md`](.devcontainer/README.md) so you can work inside Node 20.17 without depending on the host runtime.
 
 After reopening the repo in the container, use:
 
@@ -92,7 +101,7 @@ make dev-docs
 make dev-homepage
 ```
 
-VS Code tasks are also included in [tasks.json](/Users/liqingpan/Projects/langstate-docs/.vscode/tasks.json#L1) for running both app servers, launching both together, and running deploy-oriented checks.
+VS Code tasks are also included in [`.vscode/tasks.json`](.vscode/tasks.json) for running both app servers, launching both together, and running deploy-oriented checks.
 
 Expected ports in the container:
 
@@ -103,7 +112,22 @@ Expected ports in the container:
 
 ### Docs (`apps/docs`)
 
-The docs app is still Mintlify. Configure the docs deployment so the documentation root is `apps/docs`, where `docs.json` now lives.
+The docs app uses Mintlify. Configure its monorepo documentation path as `/apps/docs` with no trailing slash.
+
+Run the deploy-oriented quality gates with:
+
+```bash
+pnpm validate:docs:deploy
+pnpm docs:source-smoke
+git diff --check
+```
+
+After deployment, verify the live routes and rendered navigation:
+
+```bash
+pnpm docs:crawl:production -- https://docs.langstate.com --check-external
+DOCS_BASE_URL=https://docs.langstate.com pnpm docs:verify:production
+```
 
 ### Homepage (`apps/homepage`)
 

@@ -1,0 +1,37 @@
+---
+title: Evaluation strategy
+description: Extend concrete mutator comparison into an application-level evaluation program.
+---
+
+<Note>
+  **Design note.** The pinned source implements field-level mutator comparison through `LLMEvaluator`. The broader layers below are recommendations, not bundled evaluators.
+</Note>
+
+Start with the concrete [Mutator evaluation](/guides/mutator-evaluation), then add layers only where they answer a real product risk.
+
+## Suggested layers
+
+| Layer | Question | Possible evidence |
+| --- | --- | --- |
+| Extraction | Did input produce the expected candidate paths and values? | `LLMEvaluator` field comparisons |
+| Resolution | Did the projector choose an acceptable canonical value? | Expected canonical fixtures and rule outcomes |
+| Interaction | Did the UI request the right missing information? | Component snapshots and browser tasks |
+| Flow | Did the orchestrator stop, retry, or act at the right time? | Scenario traces and action assertions |
+| Operations | Does the integrated system meet its service goals? | Application latency, error, cost, and recovery telemetry |
+
+## Dataset shape
+
+An evaluation case should identify:
+
+- pre-state;
+- input and message identity;
+- expected interpretive post-state;
+- accepted alternatives or tolerances;
+- expected canonical outcome, when resolution is in scope; and
+- relevant metadata such as language or interaction type.
+
+`LLMEvaluator` currently compares exact best-value and confidence pairs. If your domain accepts semantic equivalents or confidence ranges, implement that policy deliberately instead of presenting the built-in score as a universal quality measure.
+
+## Reproducibility
+
+Record source commit, model/client configuration, prompt revision, dataset revision, and environment. Separate deterministic comparison failures from provider or network failures. Report measured numbers with the sample, procedure, and uncertainty needed to interpret them.

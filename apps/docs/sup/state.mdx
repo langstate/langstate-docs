@@ -1,35 +1,14 @@
-
 ---
-title: "The State"
-description: "While SUP draws inspiration from the MVC pattern, its structure differs significantly to accommodate the dynamic and probabilistic nature of AI-driven systems."
+title: State in SUP
+description: The explicit artifact shared between update and presentation phases.
 ---
 
-1. The State
+<Note>
+  **Design note.** This SUP role is broader than any one shipped class.
+</Note>
 
-In the SUP pattern, the Artifact State corresponds to the “Model” in MVC, but its purpose extends beyond static data representation. The state is designed to be machine-interpretable, interoperable, and conversation-aware, forming the shared ground truth across agents.
+State is the shared artifact that allows updating and presentation to remain decoupled. It should expose stable field identity, current values or candidates, and enough provenance for the application to explain or correct changes.
 
-1.1 Schema‑First Interoperability
+LangState's interpretive and canonical states offer two concrete representations for this role. Repositories and snapshots are separate utilities; SUP does not require a specific database or persistence lifetime.
 
-A schema‑first approach is recommended for defining the artifact state, similar to how API design favors OpenAPI over language‑specific class definitions. This allows the state to function as a communication protocol among multiple agents, services, and tools—each potentially implemented in different programming languages. By using formats like OpenAPI or JSON Schema, developers ensure:
-
-Cross‑agent consistency – the same schema can be interpreted and validated across systems.
-
-Tooling compatibility – automatic generation of forms, validators, and UI bindings.
-
-Implementation neutrality – state definitions remain decoupled from specific class or framework conventions.
-
-Code‑first generation can still be supported, as long as it produces a stable schema to maintain long‑term compatibility.
-
-1.2 Conversational Dependencies
-
-Traditional state schemas only define structural or persistence rules, leaving workflow logic to external controllers or back‑end services. In agentic systems, this separation can cause conversational inefficiency. To address this, SUP extends the schema with conversational dependency topology—a directed relationship graph describing which fields depend on others.
-
-This dependency topology serves as a guide for conversational progression. It helps the Presenter or the reasoning component decide:
-
-Which questions to ask next based on unresolved dependencies.
-
-Which values can be derived automatically from existing fields.
-
-How to manage iterative refinement when users modify dependent information.
-
-As the dialogue unfolds, the model “pushes” along this dependency graph, progressively filling in the artifact until a coherent and complete state is reached.
+Good boundaries keep transcripts, provider-specific request objects, and UI component instances from becoming the only source of truth. Store those as related context when needed, while keeping application state explicit.

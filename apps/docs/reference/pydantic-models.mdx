@@ -1,0 +1,79 @@
+---
+title: Pydantic models
+description: Source-aligned request, result, state, mutator, projector, and evaluator models.
+---
+
+The pinned implementation uses Pydantic v2 models at component boundaries. Runtime state classes remain mutable DAH-backed objects.
+
+## State models
+
+| Model | Important fields |
+| --- | --- |
+| `Inference` | `content: str`, optional `mutator_id`, optional `message_id` |
+| `ValueConfidence` | `value: object`, `confidence: float` from `-1.0` to `1.0` |
+| `InterpretiveFieldState` | optional singular `inference`, list of `values` |
+| `InterpretiveStateSchema` | root mapping of field path to `InterpretiveFieldState` |
+| `CanonicalStateSchema` | root mapping of field path to `object` |
+
+Construct root models with the `root` argument:
+
+```python
+from core.state.canonical.schema import CanonicalStateSchema
+
+payload = CanonicalStateSchema(
+    root={
+        "registrant.name": "Ada Lovelace",
+        "status": "draft",
+    }
+)
+```
+
+## Orchestrator input and output
+
+`AgentInput` supports text, action, selection, confirmation, file, and system input types. The class methods `from_text()`, `from_action()`, `from_selection()`, and `from_confirmation()` create common variants.
+
+`InteractionRequest` describes the next interaction and may include:
+
+- `interaction_type`, prompt, components, and options;
+- optional `InterpretiveStateSchema` and `CanonicalStateSchema`;
+- pending field paths; and
+- metadata.
+
+`ActionResultData` describes a completed orchestrator flow:
+
+| Field | Type |
+| --- | --- |
+| `state` | `InterpretiveStateSchema` |
+| `canonical_state` | `CanonicalStateSchema` |
+| `success` | `bool`, default `True` |
+| `action_data` | `dict[str, object]` |
+| `metadata` | `dict[str, object]` |
+
+## Action models
+
+`ActionContext` contains canonical state, an action type, parameters, and metadata. `ActionResult` contains `ActionStatus`, result data, an optional error message, and metadata.
+
+Use `ActionResult` for one domain action. Use `ActionResultData` for the abstract orchestrator's completed-flow return.
+
+## Mutator models
+
+| Model | Purpose |
+| --- | --- |
+| `StructuredInput` | Prompt string plus optional message ID |
+| `MutationContext` | Structured input, concrete `InterpretiveState`, optional metadata |
+| `MutationResult` | Updated concrete `InterpretiveState`, optional metadata |
+| `FieldExtraction` | LLM output path, string value, confidence, and inference text |
+
+The included `FieldExtraction.value` is typed as `str`, even though `ValueConfidence.value` accepts any object.
+
+## Projector models
+
+`ProjectionContext` and `ProjectionResult` are extended by canonical and UI variants. Canonical projection adds strategy, threshold, resolved and pending fields, validation errors, confirmation data, and action identifiers. UI projection adds prompt text, `UIComponent` objects, suggestions, completion status, and next fields.
+
+These models do not imply that a concrete projector is bundled; both projector classes remain abstract.
+
+## Evaluator models
+
+`EvaluationContext` holds a mutator, pre-state, expected post-state, structured input, and metadata. `EvaluationResult` contains the actual post-state, field comparison, score, and elapsed time.
+
+`StateComparison.overall_match` is stricter than `accuracy_score`: extra actual fields make the overall comparison fail, while the score denominator counts expected matching, mismatched, and missing fields only.

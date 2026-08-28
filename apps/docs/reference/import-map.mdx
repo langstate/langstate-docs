@@ -1,0 +1,105 @@
+---
+title: Source import map
+description: Exact imports that work from the pinned packages/langstate checkout.
+---
+
+Run these imports with `packages/langstate` as the current directory. They describe commit `{{commit}}`; they are not a published installed-package API.
+
+## Convenience exports from `core`
+
+```python
+from core import (
+    ActionResultData,
+    AgentInput,
+    CanonicalStateSchema,
+    EvaluationContext,
+    InteractionRequest,
+    InterpretiveStateSchema,
+    LangState,
+    LangStateConfig,
+    LLMEvaluator,
+    StateFactory,
+)
+```
+
+The root `core` module exports many contracts and schemas. It does **not** export every concrete adapter or runtime state class.
+
+## Concrete state and storage classes
+
+| Symbol | Source-checkout import |
+| --- | --- |
+| `CanonicalState` | `from core.state.canonical.state import CanonicalState` |
+| `InterpretiveState` | `from core.state.interpretive.state import InterpretiveState` |
+| `StateFactory` | `from core.state.factory.state_factory import StateFactory` |
+| `InMemoryStateRepository` | `from core.state.repository.memory import InMemoryStateRepository` |
+| `InMemorySnapshotStore` | `from core.state.snapshot.memory import InMemorySnapshotStore` |
+| `Snapshot` | `from core.state.snapshot.schema import Snapshot` |
+
+## Extraction, mutation, and evaluation
+
+| Symbol | Source-checkout import |
+| --- | --- |
+| `OpenAPIReader` | `from core.spec_extractor.openapi.extractor import OpenAPIReader` |
+| `LLMMutator` | `from core.mutator.llm.mutator import LLMMutator` |
+| `BaseLLMClient` | `from core.mutator.llm.client.base import BaseLLMClient` |
+| `StructuredInput`, `MutationContext` | `from core.mutator.llm.schema import StructuredInput, MutationContext` |
+| `LLMEvaluator` | `from core.evaluator.llm.evaluator import LLMEvaluator` |
+| `EvaluationContext`, `EvaluationResult` | `from core.evaluator.schema import EvaluationContext, EvaluationResult` |
+
+## State schemas
+
+```python
+from core.state.canonical.schema import (
+    CanonicalFieldValue,
+    CanonicalStateSchema,
+)
+from core.state.interpretive.schema import (
+    Inference,
+    InterpretiveFieldState,
+    InterpretiveStateSchema,
+    ValueConfidence,
+)
+```
+
+## Orchestrator and actions
+
+```python
+from core.langstate.base.langstate import LangState
+from core.langstate.base.schema import (
+    ActionResultData,
+    AgentInput,
+    InputType,
+    InteractionRequest,
+    InteractionType,
+    LangStateConfig,
+)
+
+from core.action.base.action import BaseAction
+from core.action.base.schema import (
+    ActionContext,
+    ActionResult,
+    ActionStatus,
+)
+```
+
+`ActionResultData` and `ActionResult` are different models. See [Pydantic models](/reference/pydantic-models) for their roles.
+
+## Projector contracts
+
+```python
+from core.projector.canonical.projector import BaseProjectorCanonicalState
+from core.projector.canonical.schema import (
+    CanonicalProjectionContext,
+    CanonicalProjectionResult,
+    CanonicalProjectionStrategy,
+)
+from core.projector.ui.projector import BaseProjectorUI
+from core.projector.ui.schema import (
+    UIComponent,
+    UIComponentType,
+    UIProjectionContext,
+    UIProjectionResult,
+)
+```
+
+For every import above, the source of truth is the pinned [`packages/langstate/core`](https://github.com/langstate/langstate/tree/df40bc49bc8e3a51b2bb695b30ff93ef81b2cc4b/packages/langstate/core) tree.
