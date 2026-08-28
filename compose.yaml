@@ -1,0 +1,41 @@
+services:
+  homepage:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - langstate_root_node_modules:/workspace/node_modules
+      - langstate_homepage_node_modules:/workspace/apps/homepage/node_modules
+      - langstate_pnpm_store:/pnpm/store
+    command: >
+      bash -lc "pnpm install &&
+      cd /workspace/apps/homepage &&
+      pnpm exec next dev --webpack --hostname 0.0.0.0 --port 3000"
+    ports:
+      - "${HOMEPAGE_PORT:-3000}:3000"
+    environment:
+      NEXT_PUBLIC_DOCS_URL: http://localhost:${DOCS_PORT:-3001}
+    restart: unless-stopped
+
+  docs:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - langstate_root_node_modules:/workspace/node_modules
+      - langstate_docs_node_modules:/workspace/apps/docs/node_modules
+      - langstate_pnpm_store:/pnpm/store
+    command: bash /workspace/scripts/start-docs-container.sh
+    ports:
+      - "${DOCS_PORT:-3001}:3001"
+    restart: unless-stopped
+
+volumes:
+  langstate_root_node_modules:
+  langstate_homepage_node_modules:
+  langstate_docs_node_modules:
+  langstate_pnpm_store:

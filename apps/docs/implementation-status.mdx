@@ -1,0 +1,52 @@
+---
+title: Implementation status
+description: Current release, packaging, test, and API readiness at the pinned source commit.
+---
+
+This site is pinned to [`langstate/langstate@{{commit}}`](https://github.com/langstate/langstate/commit/df40bc49bc8e3a51b2bb695b30ff93ef81b2cc4b), with source metadata version **{{version}}**.
+
+## Release status
+
+- **Source-only alpha:** the repository has no project tags and no GitHub releases at the documented baseline.
+- **No supported PyPI install:** the PyPI name `langstate` is owned by an unrelated project.
+- **Source imports:** working examples use `core.*` while the current directory is `packages/langstate`.
+- **Packaging incomplete:** the Poetry project metadata does not yet produce the intended public import surface.
+
+## Verified workflow
+
+```bash
+cd packages/langstate
+poetry install --no-root --with dev
+poetry run python -m pytest -q
+```
+
+At `{{commit}}`, this workflow passes **628 tests**. This count describes the pinned baseline; it is not a compatibility guarantee for later commits.
+
+## Capability matrix
+
+| Capability | Status | Notes |
+| --- | --- | --- |
+| `CanonicalState` and `InterpretiveState` | Concrete | Path-addressed state with DAH-backed storage |
+| `OpenAPIReader` | Concrete | Reads local YAML or JSON and selects a named root schema |
+| `StateFactory` | Concrete | Creates canonical state and derives interpretive state |
+| `LLMMutator` | Concrete adapter | Requires a caller-provided `BaseLLMClient` implementation |
+| `LLMEvaluator` | Concrete | Executes a mutator and compares expected and actual interpretive states |
+| In-memory repository and snapshots | Concrete | Separate utilities; not wired into `LangState` automatically |
+| Canonical and UI projectors | Abstract contracts | Applications provide implementations |
+| `LangState` | Abstract contract | `initialize`, `invoke`, state accessors, and `reset` remain application-defined |
+| Installed `langstate.*` imports | Not release-ready | Use the documented checkout and `core.*` imports |
+
+## Contract corrections
+
+The source defines:
+
+- `ActionResultData` for a completed orchestrator flow
+- `get_current_state()` for interpretive state access
+- `InterpretiveStateSchema` and `CanonicalStateSchema` as transport models
+- one latest `inference` per interpretive field, plus multiple candidate `values`
+
+Older names such as `StateResultData`, `get_state()`, or a generic `StateSchema` are not part of the pinned implementation.
+
+## Adopter guidance
+
+Evaluate the concrete state and schema primitives first. If you need a full agent loop, stable installed imports, a prebuilt UI projector, or a production persistence integration, plan to implement and maintain those extension points in your application until the project publishes a release-ready package.

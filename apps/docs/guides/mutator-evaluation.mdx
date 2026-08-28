@@ -1,0 +1,81 @@
+---
+title: Mutator evaluation
+description: Compare an actual interpretive post-state with an expected state.
+---
+
+`LLMEvaluator` evaluates a mutator by copying a pre-state, running the mutator with `StructuredInput`, and comparing its best value for every field against an expected interpretive state.
+
+The evaluator name describes the typical mutator under test; the comparison itself is deterministic.
+
+## Runnable deterministic example
+
+```python
+import asyncio
+import json
+
+from core.evaluator.llm.evaluator import LLMEvaluator
+from core.evaluator.schema import EvaluationContext
+from core.mutator.llm.client.base import BaseLLMClient
+from core.mutator.llm.mutator import LLMMutator
+from core.mutator.llm.schema import StructuredInput
+from core.state.interpretive.schema import ValueConfidence
+from core.state.interpretive.state import InterpretiveState
+
+
+class FixedClient(BaseLLMClient):
+    async def generate(self, prompt: str) -> str:
+        return json.dumps(
+            [
+                {
+                    "path": "registrant.name",
+                    "value": "Ada Lovelace",
+                    "confidence": 0.95,
+                    "inference": "Extracted the stated name",
+                }
+            ]
+        )
+
+
+async def main() -> None:
+    pre_state = InterpretiveState()
+    expected = InterpretiveState()
+    expected.add_value(
+        "registrant.name",
+        ValueConfidence(value="Ada Lovelace", confidence=0.95),
+    )
+
+    result = await LLMEvaluator().evaluate(
+        EvaluationContext(
+            mutator=LLMMutator(FixedClient()),
+            pre_state=pre_state,
+            expected_post_state=expected,
+            mutation_input=StructuredInput(
+                prompt="My name is Ada Lovelace",
+                message_id="message-1",
+            ),
+        )
+    )
+
+    assert result.comparison.overall_match
+    assert result.accuracy_score == 1.0
+
+
+asyncio.run(main())
+```
+
+## Comparison rules
+
+For each path in the union of expected and actual fields, the evaluator compares the best `ValueConfidence` objects.
+
+| Classification | Condition |
+| --- | --- |
+| Matching | Both states contain the path and both value and confidence are equal |
+| Mismatched | Both contain the path but the best value or confidence differs |
+| Missing | Only the expected state contains the path |
+| Extra | Only the actual state contains the path |
+
+`overall_match` requires zero mismatched, missing, and extra fields. `accuracy_score` is `matching / (matching + mismatched + missing)` and is `0.0` when there are no expected fields. Extra fields affect `overall_match` but are not included in that score's denominator.
+
+`time_used` measures the mutator call with a monotonic clock. It is an observation from one run, not a normalized performance score.
+
+For broader goals and proposed evaluation layers, see the explicitly forward-looking [Evaluation strategy](/design-notes/evaluation-strategy).

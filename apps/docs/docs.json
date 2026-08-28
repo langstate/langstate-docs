@@ -1,0 +1,156 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "maple",
+  "name": "LangState",
+  "description": "Source-aligned documentation for LangState's interpretive and canonical state primitives.",
+  "colors": {
+    "primary": "#a34e1a",
+    "light": "#f3a76d",
+    "dark": "#a34e1a"
+  },
+  "favicon": "/favicon.svg",
+  "variables": {
+    "repository": "https://github.com/langstate/langstate",
+    "commit": "df40bc49bc8e3a51b2bb695b30ff93ef81b2cc4b",
+    "version": "0.1.0 source alpha"
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "index",
+              "installation",
+              "quickstart",
+              "implementation-status"
+            ]
+          },
+          {
+            "group": "Core State",
+            "pages": [
+              "concepts/interpretive-state",
+              "concepts/canonical-state",
+              "concepts/field-paths-and-dependencies"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/openapi-to-state",
+              "guides/state-operations",
+              "guides/repositories-and-snapshots",
+              "guides/mutator-evaluation"
+            ]
+          },
+          {
+            "group": "Architecture",
+            "pages": [
+              "architecture/orchestrator-contract",
+              "architecture/extension-points",
+              "architecture/dah-storage"
+            ]
+          },
+          {
+            "group": "Reference",
+            "pages": [
+              "reference/import-map",
+              "reference/pydantic-models"
+            ]
+          },
+          {
+            "group": "Contributing",
+            "pages": [
+              "contributing/package-development",
+              "contributing/documentation"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Design Notes",
+        "groups": [
+          {
+            "group": "Rationale",
+            "pages": [
+              "concepts/why-langstate",
+              "design-notes/state-formation-and-reduction",
+              "design-notes/generative-ui",
+              "design-notes/evaluation-strategy"
+            ]
+          },
+          {
+            "group": "State-Updater-Presenter",
+            "pages": [
+              "sup/sup",
+              "sup/state",
+              "sup/updater",
+              "sup/presenter",
+              "sup/sup-for-llm-evaluation",
+              "sup/sup-vs-mvc"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Issues",
+        "href": "https://github.com/langstate/langstate/issues"
+      },
+      {
+        "label": "GitHub",
+        "href": "https://github.com/langstate/langstate"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Pinned source",
+      "href": "https://github.com/langstate/langstate/tree/df40bc49bc8e3a51b2bb695b30ff93ef81b2cc4b/packages/langstate"
+    }
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
+    ]
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/langstate/langstate"
+    }
+  },
+  "redirects": [
+    { "source": "/install", "destination": "/installation", "permanent": true },
+    { "source": "/rationale", "destination": "/concepts/why-langstate", "permanent": true },
+    { "source": "/sup/SUP-vs-MVC", "destination": "/sup/sup-vs-mvc", "permanent": true },
+    { "source": "/sup/State", "destination": "/sup/state", "permanent": true },
+    { "source": "/sup/Updater", "destination": "/sup/updater", "permanent": true },
+    { "source": "/sup/Presenter", "destination": "/sup/presenter", "permanent": true },
+    { "source": "/sup/SUP-for-LLM-Evaluation", "destination": "/sup/sup-for-llm-evaluation", "permanent": true },
+    { "source": "/essentials/:slug*", "destination": "/contributing/documentation", "permanent": true },
+    { "source": "/ai-tools/:slug*", "destination": "/contributing/documentation", "permanent": true },
+    { "source": "/snippets/:slug*", "destination": "/contributing/documentation", "permanent": true },
+    { "source": "/api-reference/endpoint/:slug*", "destination": "/guides/openapi-to-state", "permanent": true }
+  ],
+  "errors": {
+    "404": {
+      "redirect": false,
+      "title": "That documentation page does not exist",
+      "description": "Use the navigation or return to the [LangState overview](/). If an internal link brought you here, please [report it on GitHub](https://github.com/langstate/langstate/issues)."
+    }
+  },
+  "seo": {
+    "indexing": "navigable"
+  }
+}

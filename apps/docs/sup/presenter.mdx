@@ -1,0 +1,14 @@
+---
+title: Presenter in SUP
+description: Project state into an interaction without mutating authoritative values.
+---
+
+<Note>
+  **Design note.** LangState defines `BaseProjectorUI`, but no presenter implementation or renderer is bundled.
+</Note>
+
+A presenter reads current state and produces a view: natural-language prompt, structured UI components, or both. Its output should refer to stable field paths so a later interaction can be applied to the intended state.
+
+The presenter may choose what to ask next, how to explain ambiguity, and which control best fits a schema. Business writes and action execution should remain outside the presentation step unless the application explicitly combines those roles.
+
+LangState's `UIProjectionResult` is a possible boundary model. The host is still responsible for rendering, accessibility, localization, and returning user events as structured input.

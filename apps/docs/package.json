@@ -1,0 +1,20 @@
+{
+  "name": "@langstate/docs",
+  "private": true,
+  "scripts": {
+    "dev": "mint dev --no-open",
+    "validate": "mint validate",
+    "broken-links": "mint broken-links --check-anchors --check-redirects --check-snippets",
+    "a11y": "mint a11y"
+  },
+  "devDependencies": {
+    "@types/node": "25.3.5",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "mint": "4.2.416",
+    "playwright": "1.55.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.4",
+    "typescript": "5.9.3"
+  }
+}

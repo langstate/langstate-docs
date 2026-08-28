@@ -1,0 +1,40 @@
+---
+title: Extension points
+description: Concrete adapters and abstract interfaces at the pinned implementation commit.
+---
+
+LangState separates reusable state primitives from application-specific behavior. The table below distinguishes contracts from implementations.
+
+| Area | Contract | Included implementation | Application work |
+| --- | --- | --- | --- |
+| Schema extraction | `BaseSpecExtractor` | `OpenAPIReader` | Choose the root entity and supply a local spec |
+| Mutation | `BaseMutator[TContext]` | `LLMMutator` | Supply `BaseLLMClient` or write another mutator |
+| Canonical projection | `BaseProjectorCanonicalState` | None | Resolve candidates, validate, and decide action readiness |
+| UI projection | `BaseProjectorUI` | None | Generate prompts/components for the chosen UI |
+| Action | `BaseAction` | None | Execute domain behavior and return `ActionResult` |
+| Evaluation | `BaseEvaluator` | `Evaluator` comparison base and `LLMEvaluator` runner | Provide mutator and expected states |
+| Repository | `BaseStateRepository[TState]` | `InMemoryStateRepository` | Implement durable storage when needed |
+| Snapshot store | `BaseSnapshotStore[TState]` | `InMemorySnapshotStore` | Implement durable history and retention when needed |
+| Orchestrator | `LangState[TContext]` | None | Implement lifecycle and component coordination |
+
+## Mutator contract
+
+`BaseMutator.mutate(context)` is asynchronous and returns `MutationResult`. The included `LLMMutator`:
+
+1. copies the input `InterpretiveState`;
+2. asks the supplied `BaseLLMClient` for a JSON array of extractions;
+3. validates each extraction;
+4. appends a `ValueConfidence` candidate; and
+5. replaces the field's latest `Inference`.
+
+Provider authentication, retries, structured-output enforcement, rate limiting, and telemetry belong to the client implementation or application layer.
+
+## Projector contracts
+
+`BaseProjectorCanonicalState` requires `project()` and `can_trigger_action()`. Its schema supports resolution strategy, confidence threshold, validation errors, fields requiring confirmation, and triggered-action identifiers.
+
+`BaseProjectorUI` requires `project()`, `generate_prompt()`, and `map_field_to_component()`. UI model types are data contracts; no renderer is bundled.
+
+## Keep orchestration ownership explicit
+
+When composing extensions, decide which layer owns the loop, current state, authentication, billing, persistence, and retries. The base `LangState` class stores references but does not silently take ownership of those concerns.

@@ -1,0 +1,69 @@
+---
+title: Source-checkout quickstart
+description: Build canonical and interpretive state from the Registration OpenAPI fixture.
+---
+
+This quickstart uses only concrete code exercised by the pinned source tests. Complete [Installation](/installation), then run the example from `packages/langstate`.
+
+## Create `quickstart.py`
+
+```python
+from pathlib import Path
+
+from core.spec_extractor.openapi.extractor import OpenAPIReader
+from core.state.canonical.schema import CanonicalStateSchema
+from core.state.factory.state_factory import StateFactory
+from core.state.interpretive.schema import Inference, InterpretiveStateSchema
+
+
+schema_path = Path("tests/data/schemas/registeration.yaml")
+schema = OpenAPIReader(root_entity="Registration").read(schema_path)
+
+factory = StateFactory()
+canonical = factory.create_canonical_state(schema)
+
+canonical.set_field("registrant.name", "Ada Lovelace")
+canonical.set_field("registrant.email", "ada@example.com")
+canonical.set_field("status", "draft")
+
+interpretive = factory.create_interpretive_state(canonical)
+interpretive.add_inference(
+    "registrant.name",
+    Inference(
+        content="Loaded from canonical registration data",
+        mutator_id="quickstart",
+        message_id="example-1",
+    ),
+)
+
+canonical_payload = CanonicalStateSchema(root=canonical.get_all_fields())
+interpretive_payload = InterpretiveStateSchema(
+    root={
+        path: field_state
+        for path, field_state in interpretive.get_all_fields().items()
+        if field_state is not None
+    }
+)
+
+assert canonical.get_field("registrant.name") == "Ada Lovelace"
+assert interpretive.get_best_value("registrant.name").value == "Ada Lovelace"
+
+print(canonical_payload.model_dump_json(indent=2))
+print(interpretive_payload.model_dump_json(indent=2))
+```
+
+Run it with the Poetry environment:
+
+```bash
+poetry run python quickstart.py
+```
+
+## What this demonstrates
+
+1. `OpenAPIReader` resolves the `Registration` component into LangState's internal `Schema` model.
+2. `StateFactory.create_canonical_state()` creates leaf fields addressed by dot-separated paths.
+3. `StateFactory.create_interpretive_state()` derives candidate values from the canonical state.
+4. `InterpretiveFieldState` holds a list of value-confidence candidates and one latest `inference` object.
+5. `CanonicalStateSchema` and `InterpretiveStateSchema` are Pydantic root models for transport or validation boundaries.
+
+This does not instantiate `LangState`; the orchestrator is abstract at the pinned commit. Continue with [OpenAPI to state](/guides/openapi-to-state) or read the [orchestrator contract](/architecture/orchestrator-contract).

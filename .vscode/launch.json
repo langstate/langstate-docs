@@ -1,0 +1,36 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Docs: Dev",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "pnpm dev:docs"
+    },
+    {
+      "name": "Homepage: Dev",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "pnpm dev:homepage"
+    },
+    {
+      "name": "Docs: Deploy Check",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "pnpm validate:docs:deploy"
+    },
+    {
+      "name": "Homepage: Deploy Preview",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "pnpm deploy:homepage:preview"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Dev: Both",
+      "configurations": ["Docs: Dev", "Homepage: Dev"],
+      "stopAll": true
+    }
+  ]
+}
