@@ -63,7 +63,9 @@ async function request(url, redirect = "follow") {
 
 function extractHtmlTargets(html) {
   const targets = [];
-  const attributePattern = /\b(?:href|src)=["']([^"']+)["']/gi;
+  // Require whitespace before the attribute name so data-href and data-src
+  // metadata are not mistaken for navigable resources.
+  const attributePattern = /\s(?:href|src)=["']([^"']+)["']/gi;
   for (const match of html.matchAll(attributePattern)) targets.push(match[1].replaceAll("&amp;", "&"));
   return targets;
 }
@@ -150,8 +152,13 @@ while (queue.length > 0 && visited.size < maximumTargets) {
             let documentationPath = targetUrl.pathname.replace(/\/+$/, "") || "/";
             if (documentationPath.endsWith(".md")) {
               documentationPath = documentationPath.slice(0, -3) || "/";
+              if (documentationPath === "/index") documentationPath = "/";
+              else if (documentationPath.endsWith("/index")) {
+                documentationPath = documentationPath.slice(0, -6) || "/";
+              }
             }
-            if (!canonicalRouteSet.has(documentationPath)) {
+            const isDocumentationAsset = /\.(?:json|ya?ml)$/i.test(targetUrl.pathname);
+            if (!isDocumentationAsset && !canonicalRouteSet.has(documentationPath)) {
               failures.push(`/llms.txt links to non-navigation route: ${targetUrl.pathname}`);
             }
           }
