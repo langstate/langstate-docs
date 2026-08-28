@@ -38,32 +38,32 @@ importers:
   apps/homepage:
     dependencies:
       next:
-        specifier: latest
+        specifier: 16.1.6
         version: 16.1.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react:
-        specifier: latest
+        specifier: 19.2.4
         version: 19.2.4
       react-dom:
-        specifier: latest
+        specifier: 19.2.4
         version: 19.2.4(react@19.2.4)
     devDependencies:
       '@types/node':
-        specifier: latest
+        specifier: 25.3.5
         version: 25.3.5
       '@types/react':
-        specifier: latest
+        specifier: 19.2.14
         version: 19.2.14
       '@types/react-dom':
-        specifier: latest
+        specifier: 19.2.3
         version: 19.2.3(@types/react@19.2.14)
       autoprefixer:
-        specifier: latest
+        specifier: 10.4.27
         version: 10.4.27(postcss@8.5.8)
       postcss:
-        specifier: latest
+        specifier: 8.5.8
         version: 8.5.8
       typescript:
-        specifier: latest
+        specifier: 5.9.3
         version: 5.9.3
 
 packages:

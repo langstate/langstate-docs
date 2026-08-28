@@ -13,7 +13,18 @@ can_use_docker_for_dev() {
 }
 
 port_is_in_use() {
-  lsof -nP -iTCP:"$1" -sTCP:LISTEN >/dev/null 2>&1
+  node - "$1" <<'NODE'
+const net = require('node:net');
+
+const port = Number(process.argv[2]);
+const server = net.createServer();
+
+server.unref();
+server.once('error', () => process.exit(0));
+server.listen({ port, exclusive: true }, () => {
+  server.close(() => process.exit(1));
+});
+NODE
 }
 
 find_free_port() {
