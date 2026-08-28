@@ -73,6 +73,13 @@
         "tab": "Design Notes",
         "groups": [
           {
+            "group": "Product Direction",
+            "pages": [
+              "design-notes/library-target",
+              "design-notes/system-design"
+            ]
+          },
+          {
             "group": "Rationale",
             "pages": [
               "concepts/why-langstate",

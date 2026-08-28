@@ -1,0 +1,79 @@
+---
+title: Library target
+description: Proposed developer workflow for generating and integrating a LangState module from an OpenAPI specification.
+---
+
+<Warning>
+  **Design target, not a current feature claim.** The pinned source does not ship a scaffold generator, default projectors, a test frontend, generated action stubs, or a complete evaluation-suite generator. See [Implementation status](/implementation-status) for what can be run today.
+</Warning>
+
+The product target is a development kit that turns an OpenAPI YAML specification into a runnable integration scaffold. The scaffold should let a team experience the state-driven conversation and generative-UI loop before production APIs, tools, and business actions are connected.
+
+## Target developer journey
+
+1. **Provide a specification.** Point the generator at an OpenAPI YAML file. JSON can be supported through the same schema-reader boundary.
+2. **Generate an integration module.** Create state wiring, default policies, development stubs, a test frontend, and evaluation fixtures.
+3. **Exercise the flow.** Run natural-language and structured-input scenarios against the generated module.
+4. **Observe readiness.** Receive an explicit trigger when the application-defined business flow is complete.
+5. **Replace development stubs.** Connect generated action and data-access boundaries to real application functions.
+6. **Run evaluations.** Inspect reproducible results for extraction, resolution, interaction, and end-to-end flow behavior.
+
+## Proposed generated module
+
+| Generated area | Target responsibility | Safety boundary |
+| --- | --- | --- |
+| State setup | Build `CanonicalState` and `InterpretiveState` from the selected schema | Preserve the difference between inferred candidates and authoritative values |
+| State access | Expose the current interpretive and canonical states through the orchestrator contract | Use `get_current_state()` and `get_canonical_state()`; do not invent a second state API |
+| Interpretive-to-canonical projector | Supply a configurable default resolution policy | Require explicit confidence, validation, and confirmation rules before treating a value as canonical |
+| State-building logic | Connect natural-language or structured input to mutation and projection | Keep model/provider configuration and deterministic validation visible |
+| Function and API stubs | Create typed development replacements for operations described by the specification | Mark stubs clearly and fail closed for production actions until an implementation is supplied |
+| Test frontend | Render prompts and proposed UI components, then send interactions back into the state loop | Treat generated UI as a host-rendered projection, not as the owner of authentication or persistence |
+| Evaluation suite | Generate fixtures, runners, and a discoverable results location | Record source, model, prompt, dataset, and environment revisions with every result |
+
+An illustrative layout could look like this:
+
+```text
+generated_langstate/
+├── state.py              # schema-derived state setup and access
+├── mutators.py           # default state-building policy
+├── projectors.py         # canonical and UI projection policies
+├── actions.py            # typed development stubs
+├── adapters/             # host-framework integration boundaries
+├── frontend/             # test conversation and generative-UI harness
+└── evaluations/          # cases, runners, and result artifacts
+```
+
+The names and layout are illustrative. They are not present in the pinned repository and should not be treated as a promised CLI contract.
+
+## Target test workflow
+
+The generated test workflow should make four outcomes visible:
+
+- the conversation and proposed UI for each unresolved field;
+- the evolving interpretive candidates, confidence, and latest inference;
+- the canonical values and the reason each value was accepted; and
+- the action-readiness decision, action result, and evaluation report.
+
+This is more useful than a chat transcript alone because a developer can see why the system continued asking, resolved a field, or triggered a business action.
+
+## Integration target
+
+“Plug-and-play” should mean **adapter-based composition**, not hidden ownership of an existing application. A generated module should be callable from LangGraph, a custom agent loop, a web application, or a background worker through small input, state, action, and persistence adapters.
+
+The host application continues to own authentication, authorization, tool credentials, transactions, deployment, and user-facing rendering. LangState owns the explicit state contracts and the configured transition workflow inside that boundary.
+
+## Gap from the pinned source
+
+| Target capability | Pinned implementation status |
+| --- | --- |
+| Read a local OpenAPI YAML or JSON specification | Concrete through `OpenAPIReader` |
+| Create canonical and interpretive state | Concrete through `StateFactory` and the state classes |
+| Retrieve both states from an application loop | Abstract `LangState` accessor contract |
+| Default interpretive-to-canonical projection | Contract only; no bundled implementation |
+| Default UI projection and renderer | Contract and schemas only; no bundled projector or renderer |
+| Generated API/function stubs | Not implemented |
+| Generated test frontend | Not implemented |
+| Generated evaluation suites and result viewer | Not implemented; `LLMEvaluator` covers mutator comparison only |
+| Packaged LangGraph or framework adapters | Not implemented |
+
+Continue with [System design](/design-notes/system-design) for the proposed runtime boundaries, or [Extension points](/architecture/extension-points) for the exact source contracts available today.
